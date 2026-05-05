@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>UpNext | Stage View</title>
+    <script src="/socket.io/socket.io.js"></script>
+    <style>
+        body { background-color: #0f0f0f; color: #ffffff; font-family: sans-serif; display: flex; flex-direction: column; align-items: center; }
+        .hero-card { background: linear-gradient(145deg, #1a1a1a, #0a0a0a); border: 2px solid #B026FF; border-radius: 15px; padding: 20px; width: 90%; max-width: 400px; text-align: center; margin-top: 50px; }
+        .badge { background-color: #39FF14; color: black; font-weight: bold; padding: 5px 10px; border-radius: 5px; text-transform: uppercase; font-size: 0.8rem; }
+        .lineup-list { width: 90%; max-width: 400px; margin-top: 30px; }
+        .lineup-item { display: flex; justify-content: space-between; border-bottom: 1px solid #333; padding: 10px 0; }
+        .time { color: #B026FF; }
+    </style>
+</head>
+<body>
+    <div class="hero-card">
+        <span class="badge">On Stage Now</span>
+        <h1 id="current-performer">Loading...</h1>
+        <p>Verified at: <span id="club-name">Main Venue</span></p>
+    </div>
+
+    <div class="lineup-list">
+        <h3>Up Next</h3>
+        <div class="lineup-item"><span>Coming Up:</span> <span class="time" id="next-performer">Check back soon</span></div>
+    </div>
+
+    <script>
+        const socket = io();
+        
+        // Listen for real-time lineup changes
+        socket.on('lineupChanged', (data) => {
+            document.getElementById('current-performer').innerText = data.current;
+            document.getElementById('next-performer').innerText = data.next;
+        });
+    </script>
+</body>
+</html>
