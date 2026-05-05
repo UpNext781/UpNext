@@ -1,0 +1,14 @@
+# Security: Hide API keys and secrets
+.env
+
+# Dependencies: Don't upload the massive library folder
+node_modules/
+
+# Logs: Keep error logs local
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Mac/Windows system files
+.DS_Store
+Thumbs.db
