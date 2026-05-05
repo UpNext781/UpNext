@@ -1,22 +1,20 @@
-const { Pool } = require('pg');
-require('dotenv').config();
+// db.js - Mock Database for Initial Testing
 
-// Create a connection pool using the credentials from your .env file
-const pool = new Pool({
-  host: process.env.DB_HOST,
-  user: process.env.DB_USER,
-  password: process.env.DB_PASSWORD,
-  database: process.env.DB_NAME,
-  port: 5432,
-});
+// This acts as your temporary data storage in memory
+const mockLineup = [
+  { id: 1, name: 'Jade', stage_name: 'Jade', status: 'On Stage' },
+  { id: 2, name: 'Ruby', stage_name: 'Ruby', status: 'Up Next' },
+  { id: 3, name: 'Amber', stage_name: 'Amber', status: 'Waiting' }
+];
 
-// Test the connection
-pool.query('SELECT NOW()', (err, res) => {
-  if (err) {
-    console.error('Database connection error:', err.stack);
-  } else {
-    console.log('Database connected successfully at:', res.rows.now);
+const db = {
+  // This simulates a standard database query function
+  query: async (text, params) => {
+    console.log("🛠️ Mock DB received query:", text);
+    
+    // For now, we just return the full list regardless of the query
+    return { rows: mockLineup };
   }
-});
+};
 
-module.exports = pool;
+module.exports = db;
