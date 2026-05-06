@@ -7,12 +7,15 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
+    env:
+      RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
+      RAILWAY_SERVICE: ${{ secrets.RAILWAY_STAGING_SERVICE || vars.RAILWAY_STAGING_SERVICE }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
       - run: npm install -g @railway/cli
-      - env:
-          RAILWAY_TOKEN: ${{ secrets.RAILWAY_TOKEN }}
-        run: railway up --service "${{ secrets.RAILWAY_STAGING_SERVICE }}"
+      - run: test -n "$RAILWAY_TOKEN"
+      - run: test -n "$RAILWAY_SERVICE"
+      - run: railway up --service "$RAILWAY_SERVICE"
