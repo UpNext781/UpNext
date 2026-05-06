@@ -1,7 +1,7 @@
 -- UpNext Database Schema Initialization
 
 -- 1. Users Table (Core Identity)
-CREATE TABLE users (
+CREATE TABLE IF NOT EXISTS users (
     id SERIAL PRIMARY KEY,
     email VARCHAR(255) UNIQUE NOT NULL,
     password_hash TEXT NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE users (
 );
 
 -- 2. Entertainer Profiles (The "Enhanced" Data)
-CREATE TABLE entertainer_profiles (
+CREATE TABLE IF NOT EXISTS entertainer_profiles (
     id SERIAL PRIMARY KEY,
     user_id INTEGER REFERENCES users(id),
     stage_name VARCHAR(100) NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE entertainer_profiles (
 );
 
 -- 3. Clubs Table
-CREATE TABLE clubs (
+CREATE TABLE IF NOT EXISTS clubs (
     id SERIAL PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
     address TEXT,
@@ -29,7 +29,7 @@ CREATE TABLE clubs (
 );
 
 -- 4. Lineups (The Real-Time Feed)
-CREATE TABLE lineups (
+CREATE TABLE IF NOT EXISTS lineups (
     id SERIAL PRIMARY KEY,
     club_id INTEGER REFERENCES clubs(id),
     entertainer_id INTEGER REFERENCES entertainer_profiles(id),

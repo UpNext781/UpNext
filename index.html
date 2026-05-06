@@ -27,13 +27,31 @@
     </div>
 
     <script>
-        const socket = io('https://upnext-production-33dc.up.railway.app');
-        
-        // Listen for real-time lineup changes
+        const socket = io();
+        const currentEl = document.getElementById('current-performer');
+        const nextEl = document.getElementById('next-performer');
+        const clubEl = document.getElementById('club-name');
+
+        async function loadInitialLineup() {
+            try {
+                const response = await fetch('/api/lineup');
+                const data = await response.json();
+                currentEl.innerText = data.current || 'Check back soon';
+                nextEl.innerText = data.next || 'Check back soon';
+                clubEl.innerText = data.club || 'Main Venue';
+            } catch (error) {
+                currentEl.innerText = 'Check back soon';
+                nextEl.innerText = 'Check back soon';
+            }
+        }
+
         socket.on('lineupChanged', (data) => {
-            document.getElementById('current-performer').innerText = data.current;
-            document.getElementById('next-performer').innerText = data.next;
+            currentEl.innerText = data.current || 'Check back soon';
+            nextEl.innerText = data.next || 'Check back soon';
+            if (data.club) clubEl.innerText = data.club;
         });
+
+        loadInitialLineup();
     </script>
 </body>
 </html>
