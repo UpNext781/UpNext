@@ -7,7 +7,7 @@ const app = express();
 const server = http.createServer(app);
 const io = new Server(server);
 
-const PORT = process.env.PORT || 8000;
+const PORT = process.env.PORT || 8080;
 
 // Basic route to check if server is running
 app.get('/', (req, res) => {
