@@ -12,7 +12,9 @@ const PORT = process.env.PORT || 8080;
 // Connect to Neon Database
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false }
+  ssl: {
+    rejectUnauthorized: false
+  }
 });
 
 // 1. Home Route
