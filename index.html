@@ -27,7 +27,7 @@
     </div>
 
     <script>
-        const socket = io();
+        const socket = io('https://upnext-production-33dc.up.railway.app');
         
         // Listen for real-time lineup changes
         socket.on('lineupChanged', (data) => {
