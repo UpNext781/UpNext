@@ -9,6 +9,7 @@ app.use(cors());
 app.use(express.json());
 
 // Initialize Gemini with your API Key
+// Ensure GEMINI_API_KEY is set in your Vercel Environment Variables
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 const personas = {
@@ -17,6 +18,7 @@ const personas = {
 };
 
 // THE AI CHAT ROUTE
+// This is what the ChatInterface component calls
 app.post('/api/chat', async (req, res) => {
   try {
     const { messages, characterPreference } = req.body;
@@ -32,6 +34,7 @@ app.post('/api/chat', async (req, res) => {
       systemInstruction: systemInstruction 
     });
 
+    // Format the conversation history for the Google SDK
     const history = messages.slice(0, -1).map(m => ({
       role: m.role === "user" ? "user" : "model",
       parts: [{ text: m.content }],
@@ -44,17 +47,12 @@ app.post('/api/chat', async (req, res) => {
     res.json({ text: response.text() });
   } catch (error) {
     console.error("Concierge Error:", error);
-    res.status(500).json({ error: "The concierge is away from their desk." });
+    res.status(500).json({ error: "The concierge is currently unavailable." });
   }
 });
 
-// REMOVED the app.get("/") route that was showing "Server is Online"
-// This allows Next.js to take over the home page display.
-
-// This tells the server to let the Next.js frontend handle any route it doesn't recognize
-app.get('*', (req, res) => {
-  res.status(200).send('Next.js frontend should be here. If you see this, we need to check the Vercel routing.');
-});
+// We keep the routes clean so the Next.js frontend can handle the homepage (/)
+// This allows the build in the 'upnext-web' folder to render correctly.
 
 export default app;
 
