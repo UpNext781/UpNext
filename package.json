@@ -9,7 +9,7 @@
     "dev": "nodemon server.js"
   },
   "dependencies": {
-    "@google/generative-ai": "latest": "latest",
+    "@google/generative-ai": "latest",
     "dotenv": "latest",
     "express": "latest",
     "socket.io": "^4.8.3"
