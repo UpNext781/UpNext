@@ -1,37 +1,12 @@
 import express from 'express';
-import { createServer } from 'http';
-import { Server } from 'socket.io';
-import dotenv from 'dotenv';
-
-dotenv.config();
+import cors from 'cors';
+import { GoogleGenerativeAI } from "@google/generative-ai";
 
 const app = express();
-const httpServer = createServer(app);
-const io = new Server(httpServer, {
-  cors: {
-    origin: process.env.FRONTEND_URL || '*',
-    methods: ['GET', 'POST']
-  }
-});
 
+// Standard Middleware
+app.use(cors());
 app.use(express.json());
-
-app.get('/', (req, res) => {
-  res.send('UpNext Server is Online and running on Vercel');
-});
-
-io.on('connection', (socket) => {
-  console.log('User connected:', socket.id);
-  
-  socket.on('updateLineup', (data) => {
-    io.emit('lineupChanged', data);
-  });
-
-  socket.on('disconnect', () => {
-    console.log('User disconnected');
-  });
-});
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // Initialize Gemini with your API Key
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
@@ -41,14 +16,17 @@ const personas = {
   Cosmo: "You are Cosmo, a high-end noir concierge. You are witty, slightly eccentric, and a fiercely loyal second-in-command. You are the 'eyes and ears' of the club. You are playful but a tactical strategist."
 };
 
-// This is the route that fixes the 85% error rate
+// THE AI CHAT ROUTE
 app.post('/api/chat', async (req, res) => {
   try {
     const { messages, characterPreference } = req.body;
 
+    if (!messages || !messages.length) {
+      return res.status(400).json({ error: "No messages provided" });
+    }
+
     const systemInstruction = characterPreference === 'Roxy' ? personas.Roxy : personas.Cosmo;
 
-    // Use gemini-1.5-flash for speed and reliability
     const model = genAI.getGenerativeModel({ 
       model: "gemini-1.5-flash",
       systemInstruction: systemInstruction 
@@ -69,5 +47,9 @@ app.post('/api/chat', async (req, res) => {
     res.status(500).json({ error: "The concierge is away from their desk." });
   }
 });
-// For Vercel, we export the app instead of using httpServer.listen
+
+// REMOVED the app.get("/") route that was showing "Server is Online"
+// This allows Next.js to take over the home page display.
+
 export default app;
+
