@@ -51,5 +51,10 @@ app.post('/api/chat', async (req, res) => {
 // REMOVED the app.get("/") route that was showing "Server is Online"
 // This allows Next.js to take over the home page display.
 
+// This tells the server to let the Next.js frontend handle any route it doesn't recognize
+app.get('*', (req, res) => {
+  res.status(200).send('Next.js frontend should be here. If you see this, we need to check the Vercel routing.');
+});
+
 export default app;
 
