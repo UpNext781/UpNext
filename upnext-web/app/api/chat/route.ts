@@ -12,6 +12,7 @@ export async function POST(req: Request) {
       contents: lastMessage,
     });
 
+    // This sends the raw words so the chat bubbles actually fill up
     return new Response(result.response.text());
 
   } catch (error) {
