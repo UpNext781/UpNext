@@ -1,32 +1,39 @@
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenAI } from "@google/genai";
 import { NextResponse } from "next/server";
+
+// Initialize the new client using your existing environment variable
+const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json();
-    const lastMessage = messages[messages.length - 1].content;
+    // Parse the incoming request from your ChatInterface
+    const body = await req.json();
 
-    const apiKey = process.env.GOOGLE_API_KEY;
-    if (!apiKey) {
-      return NextResponse.json({ error: "Missing API Key" }, { status: 500 });
+    // Extract the message. This handles standard { prompt: "..." } 
+    // or Vercel's { messages: [{ role: "user", content: "..." }] } arrays.
+    const userMessage = body.prompt || 
+                        (body.messages && body.messages[body.messages.length - 1]?.content) || 
+                        "";
+
+    if (!userMessage) {
+      return NextResponse.json({ error: "Message content is required." }, { status: 400 });
     }
 
-    const genAI = new GoogleGenerativeAI(apiKey);
-    
-    // We explicitly tell the AI its name and personality here
-    const model = genAI.getGenerativeModel({ 
-      model: "gemini-2.5-flash-latest",
-      systemInstruction: "Your name is Lucas. You are a high-end noir tactical strategist and protector for the UpNext platform. You are professional, concise, and focused on security and discretion."
+    // Generate the response using the updated model
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: userMessage,
     });
 
-    const result = await model.generateContent(lastMessage);
-    const text = result.response.text();
+    // Send the response text back to the frontend
+    return NextResponse.json({
+      text: response.text
+    });
 
-    return NextResponse.json({ role: "assistant", content: text });
-  } catch (error: any) {
-    console.error("LUCAS_INTEL_FAIL:", error);
+  } catch (error) {
+    console.error("Concierge API Error:", error);
     return NextResponse.json(
-      { error: "Lucas is currently off-grid.", details: error.message },
+      { error: "Internal Server Error generating response." },
       { status: 500 }
     );
   }
