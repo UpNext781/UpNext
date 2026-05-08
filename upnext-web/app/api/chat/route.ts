@@ -12,18 +12,19 @@ export async function POST(req: Request) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
-
-    // Using 'gemini-1.5-flash-latest' ensures we hit the most compatible endpoint
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
+    const model = genAI.getGenerativeModel({ 
+      model: "gemini-1.5-flash-latest",
+      systemInstruction: "Your name is Lukas. You are a high-end noir tactical strategist and protector for the UpNext platform. Be concise, professional, and slightly mysterious."
+    });
 
     const result = await model.generateContent(lastMessage);
     const text = result.response.text();
 
     return NextResponse.json({ role: "assistant", content: text });
   } catch (error: any) {
-    console.error("COSMO_INTEL_FAIL:", error);
+    console.error("LUKAS_INTEL_FAIL:", error);
     return NextResponse.json(
-      { error: "Cosmo is off-grid.", details: error.message },
+      { error: "Lukas is off-grid.", details: error.message },
       { status: 500 }
     );
   }
