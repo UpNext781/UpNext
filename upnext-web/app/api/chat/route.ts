@@ -6,8 +6,6 @@ const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 export async function POST(req: Request) {
   try {
     const { messages } = await req.json();
-    
-    // Get the most recent message from the user
     const lastMessage = messages[messages.length - 1].content;
 
     const response = await ai.models.generateContent({
@@ -15,20 +13,12 @@ export async function POST(req: Request) {
       contents: lastMessage,
     });
 
-    const text = response.text;
-
-    // This is the "Magic" part: 
-    // It formats the answer exactly how your ChatInterface.tsx expects it
-    return NextResponse.json([
-      {
-        id: Math.random().toString(),
-        role: 'assistant',
-        content: text,
-      }
-    ]);
+    // We send back just the text string. 
+    // The frontend will handle the rest.
+    return new Response(response.text);
 
   } catch (error) {
     console.error("API Error:", error);
-    return NextResponse.json({ error: "Failed to connect to concierge" }, { status: 500 });
+    return NextResponse.json({ error: "Concierge offline" }, { status: 500 });
   }
 }
