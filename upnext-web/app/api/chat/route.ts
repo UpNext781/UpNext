@@ -1,9 +1,5 @@
 import { streamText } from 'ai';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
-
-const google = createGoogleGenerativeAI({
-  apiKey: process.env.GEMINI_API_KEY || "",
-});
+import { google } from '@ai-sdk/google';
 
 export const maxDuration = 30;
 
@@ -12,13 +8,13 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
 
     const result = await streamText({
-      model: google('gemini-1.5-flash'),
+      // We added '-latest' because Google was giving a 404 on the short name
+      model: google('gemini-1.5-flash-latest'),
       messages,
     });
 
-    // This bypasses the 'toDataStreamResponse' error by 
-    // handing the text stream directly to the frontend.
-    return new Response(result.textStream);
+    // This is the standard command that should work now that your packages are updated
+    return result.toDataStreamResponse();
     
   } catch (error) {
     console.error("Concierge Error:", error);
