@@ -8,13 +8,19 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
     const lastMessage = messages[messages.length - 1].content;
 
-    const response = await ai.models.generateContent({
-      model: 'gemini-2.5-flash',
+    const result = await ai.models.generateContent({
+      model: 'gemini-2.0-flash', 
       contents: lastMessage,
     });
 
-    // This sends raw text, which matches what your frontend is expecting
-    return new Response(response.text);
+    const text = result.response.text();
+
+    // Wrapping the text in a simple JSON response that 
+    // the Vercel AI SDK can easily parse for the UI
+    return NextResponse.json({
+      role: 'assistant',
+      content: text
+    });
 
   } catch (error) {
     console.error("API Error:", error);
