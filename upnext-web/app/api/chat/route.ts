@@ -13,8 +13,7 @@ export async function POST(req: Request) {
       contents: lastMessage,
     });
 
-    // We send back just the text string. 
-    // The frontend will handle the rest.
+    // This sends raw text, which matches what your frontend is expecting
     return new Response(response.text);
 
   } catch (error) {
