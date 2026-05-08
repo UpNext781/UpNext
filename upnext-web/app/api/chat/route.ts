@@ -1,17 +1,26 @@
-import { GoogleGenAI } from "@google/genai";
-import { GoogleGenerativeAIStream, StreamingTextResponse } from "ai";
+import { streamText } from 'ai';
+import { createGoogleGenerativeAI } from '@ai-sdk/google';
 
-const genAI = new GoogleGenAI(process.env.GEMINI_API_KEY || "");
+// Link it to your exact Vercel Environment Variable
+const google = createGoogleGenerativeAI({
+  apiKey: process.env.GEMINI_API_KEY || "",
+});
+
+export const maxDuration = 30;
 
 export async function POST(req: Request) {
-  const { messages } = await req.json();
-  const lastMessage = messages[messages.length - 1].content;
+  try {
+    const { messages } = await req.json();
 
-  const geminiStream = await genAI.getGenerativeModel({ model: "gemini-1.5-flash" })
-    .generateContentStream({
-      contents: [{ role: "user", parts: [{ text: lastMessage }] }],
+    const result = await streamText({
+      model: google('gemini-1.5-flash'), 
+      messages,
     });
 
-  const stream = GoogleGenerativeAIStream(geminiStream);
-  return new StreamingTextResponse(stream);
+    return result.toDataStreamResponse();
+    
+  } catch (error) {
+    console.error("Concierge Error:", error);
+    return new Response("Tactical connection lost.", { status: 500 });
+  }
 }
