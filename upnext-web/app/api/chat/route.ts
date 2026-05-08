@@ -12,9 +12,11 @@ export async function POST(req: Request) {
     }
 
     const genAI = new GoogleGenerativeAI(apiKey);
+    
+    // We explicitly tell the AI its name and personality here
     const model = genAI.getGenerativeModel({ 
       model: "gemini-1.5-flash-latest",
-      systemInstruction: "Your name is Lukas. You are a high-end noir tactical strategist and protector for the UpNext platform. Be concise, professional, and slightly mysterious."
+      systemInstruction: "Your name is Lucas. You are a high-end noir tactical strategist and protector for the UpNext platform. You are professional, concise, and focused on security and discretion."
     });
 
     const result = await model.generateContent(lastMessage);
@@ -22,9 +24,9 @@ export async function POST(req: Request) {
 
     return NextResponse.json({ role: "assistant", content: text });
   } catch (error: any) {
-    console.error("LUKAS_INTEL_FAIL:", error);
+    console.error("LUCAS_INTEL_FAIL:", error);
     return NextResponse.json(
-      { error: "Lukas is off-grid.", details: error.message },
+      { error: "Lucas is currently off-grid.", details: error.message },
       { status: 500 }
     );
   }
