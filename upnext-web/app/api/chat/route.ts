@@ -32,4 +32,3 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Failed to connect to concierge" }, { status: 500 });
   }
 }
-
