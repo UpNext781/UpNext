@@ -3,7 +3,7 @@ import { redirect } from 'next/navigation'
 
 export default async function AdminPage() {
   const supabase = await createClient()
-  
+
   // Verify the user is actually logged in
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) redirect('/login')
@@ -41,12 +41,10 @@ export default async function AdminPage() {
             <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest">Database</h3>
             <p className="text-3xl font-mono mt-2">CONNECTED</p>
           </div>
-          
           <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
             <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest">Active Users</h3>
             <p className="text-3xl font-mono mt-2">1</p>
           </div>
-
           <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
             <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest">Platform Role</h3>
             <p className="text-3xl font-mono mt-2 text-blue-400 uppercase">{profile?.role}</p>
@@ -60,4 +58,3 @@ export default async function AdminPage() {
     </div>
   )
 }
- 
