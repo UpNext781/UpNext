@@ -15,7 +15,7 @@ export async function POST(req: Request) {
     
     // We explicitly tell the AI its name and personality here
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash-latest",
+      model: "gemini-2.5-flash-latest",
       systemInstruction: "Your name is Lucas. You are a high-end noir tactical strategist and protector for the UpNext platform. You are professional, concise, and focused on security and discretion."
     });
 
