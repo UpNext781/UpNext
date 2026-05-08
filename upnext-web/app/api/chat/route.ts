@@ -1,22 +1,17 @@
 import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAIStream, StreamingTextResponse } from "ai";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const genAI = new GoogleGenerativeAIStream(new GoogleGenAI(process.env.GEMINI_API_KEY || ""));
 
 export async function POST(req: Request) {
-  try {
-    const { messages } = await req.json();
-    const lastMessage = messages[messages.length - 1].content;
+  const { messages } = await req.json();
+  const lastMessage = messages[messages.length - 1].content;
 
-    const result = await ai.models.generateContent({
-      model: 'gemini-1.5-flash',
-      contents: lastMessage,
-    });
+  const geminiStream = await genAI.generateContentStream({
+    model: "gemini-1.5-flash",
+    contents: [{ role: "user", parts: [{ text: lastMessage }] }],
+  });
 
-    // This sends the raw words so the chat bubbles actually fill up
-    return new Response(result.response.text());
-
-  } catch (error) {
-    console.error("Concierge Error:", error);
-    return new Response("Tactical connection lost.", { status: 500 });
-  }
+  const stream = GoogleGenerativeAIStream(geminiStream);
+  return new StreamingTextResponse(stream);
 }
