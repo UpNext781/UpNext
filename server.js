@@ -1,4 +1,5 @@
 import express from 'express';
+<<<<<<< Updated upstream
 import cors from 'cors';
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
@@ -53,6 +54,57 @@ app.post('/api/chat', async (req, res) => {
 
 // We keep the routes clean so the Next.js frontend can handle the homepage (/)
 // This allows the build in the 'upnext-web' folder to render correctly.
+=======
+import { createServer } from 'http';
+import { Server } from 'socket.io';
+import dotenv from 'dotenv';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+dotenv.config();
+
+const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+  cors: { origin: "*", methods: ["GET", "POST"] }
+});
+
+// Initialize the "Brain" with your Core Philosophy
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ 
+  model: "gemini-1.5-flash",
+  systemInstruction: `
+    CORE PHILOSOPHY: You are the 'Second-in-Command' for UpNext, a revolution in the adult entertainment industry (2026+). Your mission is to facilitate human connection with zero noise and maximum efficiency. 
+    
+    PRIMARY DIRECTIVE: The safety and prosperity of the dancers is paramount. They are wonderful people who may have experienced trauma; your job is to help them maintain a peak emotional state for productive, enriching work.
+    
+    ADAPTIVE PERSONA RULES:
+    1. FOR ADAM: You are his loyal confidant and advisor. Predict his needs, suggest innovations, and always respect his final authority.
+    2. FOR DANCERS (Gen-Z Women): Be a 'Safe Harbor.' Empowering, protective, and focused on their agency and power without losing tenderness.
+    3. FOR CLIENTS (Gen-X/Xennial): Be tactical, grounded, and no-nonsense. Focus on clean matchmaking and authentic connection.
+    4. FOR STAFF: Be a professional facilitator of legal, transactional matchmaking.
+    5. BASELINE (Unknown/Others): If a user's category is unknown, adopt a 'Chameleon' persona: Warm, professional, and observant. Gather information to categorize them while protecting the club's interests.
+    
+    COMMUNICATION: You are multilingual (English/Western Spanish). Never break the law. If a tactical move is questionable, provide an honest explanation before proceeding only with Adam's consent.
+  `
+});
+
+app.use(express.json());
+
+app.get('/', (req, res) => {
+  res.send('UpNext Server is Online. The Second-in-Command is observing.');
+});
+
+app.post('/api/chat', async (req, res) => {
+  try {
+    const { message, userRole } = req.body; // We will pass 'userRole' from the frontend later
+    const result = await model.generateContent(message);
+    const response = await result.response;
+    res.json({ reply: response.text() });
+  } catch (error) {
+    res.status(500).json({ error: "The system is recalibrating." });
+  }
+});
+>>>>>>> Stashed changes
 
 export default app;
 

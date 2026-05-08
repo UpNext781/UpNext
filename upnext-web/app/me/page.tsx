@@ -49,7 +49,7 @@ export default async function AdminPage() {
 
           <div className="bg-slate-800 p-6 rounded-2xl border border-slate-700 shadow-xl">
             <h3 className="text-slate-500 text-xs font-bold uppercase tracking-widest">Platform Role</h3>
-            <p className="text-3xl font-mono mt-2 text-blue-400 uppercase">{profile.role}</p>
+            <p className="text-3xl font-mono mt-2 text-blue-400 uppercase">{profile?.role}</p>
           </div>
         </div>
 
@@ -60,6 +60,4 @@ export default async function AdminPage() {
     </div>
   )
 }
-    </div>
-  )
-}
+ 
