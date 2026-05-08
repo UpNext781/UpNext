@@ -1,7 +1,6 @@
 import { streamText } from 'ai';
 import { createGoogleGenerativeAI } from '@ai-sdk/google';
 
-// Link it to your exact Vercel Environment Variable
 const google = createGoogleGenerativeAI({
   apiKey: process.env.GEMINI_API_KEY || "",
 });
@@ -13,11 +12,13 @@ export async function POST(req: Request) {
     const { messages } = await req.json();
 
     const result = await streamText({
-      model: google('gemini-1.5-flash'), 
+      model: google('gemini-1.5-flash'),
       messages,
     });
 
-    return result.toTextStreamResponse();
+    // This bypasses the 'toDataStreamResponse' error by 
+    // handing the text stream directly to the frontend.
+    return new Response(result.textStream);
     
   } catch (error) {
     console.error("Concierge Error:", error);
