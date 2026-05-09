@@ -1,18 +1,24 @@
 import { NextResponse } from 'next/server';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
 
 export async function POST(req: Request) {
   try {
     const { text, voiceId } = await req.json();
 
-    // 1. Validation
-    if (!text) return NextResponse.json({ error: 'No text provided' }, { status: 400 });
+    // 1. Get the "Brain's" Response from Gemini
+    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
     
-    // Fallback to Lucas ID if no specific voiceId is sent from the UI
-    const selectedVoiceId = voiceId || process.env.VOICE_ID_LUCAS;
+    // System prompt to keep them in character
+    const prompt = `You are a noir tactical strategist. Respond briefly and professionally. User message: ${text}`;
+    
+    const geminiResponse = await model.generateContent(prompt);
+    const aiText = geminiResponse.response.text();
 
-    // 2. Call ElevenLabs API
-    const response = await fetch(
-      `https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}`,
+    // 2. Send THAT text to ElevenLabs
+    const voiceResponse = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
       {
         method: 'POST',
         headers: {
@@ -20,35 +26,20 @@ export async function POST(req: Request) {
           'xi-api-key': process.env.ELEVENLABS_API_KEY as string,
         },
         body: JSON.stringify({
-          text: text,
-          model_id: "eleven_multilingual_v2", // Multilingual v2 has the best "Noir" texture
-          voice_settings: {
-            stability: 0.5,
-            similarity_boost: 0.8,
-            style: 0.0,
-            use_speaker_boost: true,
-          },
+          text: aiText, // Use Gemini's words, not the user's
+          model_id: "eleven_multilingual_v2",
+          voice_settings: { stability: 0.5, similarity_boost: 0.8 },
         }),
       }
     );
 
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error('ElevenLabs Error:', errorData);
-      return NextResponse.json({ error: 'Failed to generate speech' }, { status: 500 });
-    }
-
-    // 3. Return the raw audio buffer to the frontend
-    const audioBuffer = await response.arrayBuffer();
-    
+    const audioBuffer = await voiceResponse.arrayBuffer();
     return new NextResponse(audioBuffer, {
-      headers: {
-        'Content-Type': 'audio/mpeg',
-      },
+      headers: { 'Content-Type': 'audio/mpeg' },
     });
 
   } catch (error) {
-    console.error('Route Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
+    console.error(error);
+    return NextResponse.json({ error: 'Internal Error' }, { status: 500 });
   }
 }
