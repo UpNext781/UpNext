@@ -5,7 +5,7 @@ export async function POST(req: Request) {
     const { text, voiceId } = await req.json();
     const API_KEY = process.env.GEMINI_API_KEY;
 
-    // 1. Direct Brain Connection (Bypassing the SDK)
+    // 1. Direct Handshake to Google
     const geminiResponse = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
       {
@@ -18,6 +18,13 @@ export async function POST(req: Request) {
     );
 
     const data = await geminiResponse.json();
+
+    // SENSOR: Check if Google sent back an error or empty result
+    if (data.error || !data.candidates || data.candidates.length === 0) {
+      console.error('SYSTEM ERROR:', data.error || 'No candidates found');
+      return NextResponse.json({ error: 'Brain offline', detail: data }, { status: 500 });
+    }
+
     const aiText = data.candidates[0].content.parts[0].text;
 
     // 2. Vocal Cords Connection (ElevenLabs)
@@ -42,6 +49,6 @@ export async function POST(req: Request) {
 
   } catch (error) {
     console.error('Tactical Failure:', error);
-    return NextResponse.json({ error: 'System Breach in API' }, { status: 500 });
+    return NextResponse.json({ error: 'Handshake Interrupted' }, { status: 500 });
   }
 }
