@@ -1,28 +1,54 @@
-import { streamText } from 'ai';
-import { createGoogleGenerativeAI } from '@ai-sdk/google';
-
-// 1. We explicitly link your specific API key here
-const google = createGoogleGenerativeAI({
-  apiKey: process.env.GEMINI_API_KEY || "",
-});
-
-export const maxDuration = 30;
+import { NextResponse } from 'next/server';
 
 export async function POST(req: Request) {
   try {
-    const { messages } = await req.json();
+    const { text, voiceId } = await req.json();
 
-    // 2. We use the standard model name with the wired provider
-    const result = await streamText({
-      model: google('gemini-1.5-flash'),
-      messages,
+    // 1. Validation
+    if (!text) return NextResponse.json({ error: 'No text provided' }, { status: 400 });
+    
+    // Fallback to Lucas ID if no specific voiceId is sent from the UI
+    const selectedVoiceId = voiceId || process.env.VOICE_ID_LUCAS;
+
+    // 2. Call ElevenLabs API
+    const response = await fetch(
+      `https://api.elevenlabs.io/v1/text-to-speech/${selectedVoiceId}`,
+      {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'xi-api-key': process.env.ELEVENLABS_API_KEY as string,
+        },
+        body: JSON.stringify({
+          text: text,
+          model_id: "eleven_multilingual_v2", // Multilingual v2 has the best "Noir" texture
+          voice_settings: {
+            stability: 0.5,
+            similarity_boost: 0.8,
+            style: 0.0,
+            use_speaker_boost: true,
+          },
+        }),
+      }
+    );
+
+    if (!response.ok) {
+      const errorData = await response.json();
+      console.error('ElevenLabs Error:', errorData);
+      return NextResponse.json({ error: 'Failed to generate speech' }, { status: 500 });
+    }
+
+    // 3. Return the raw audio buffer to the frontend
+    const audioBuffer = await response.arrayBuffer();
+    
+    return new NextResponse(audioBuffer, {
+      headers: {
+        'Content-Type': 'audio/mpeg',
+      },
     });
 
-    return result.toDataStreamResponse();
-    
   } catch (error) {
-    // This will print the EXACT reason for failure in your Vercel Logs
-    console.error("Concierge Tactical Error:", error);
-    return new Response("Tactical connection lost.", { status: 500 });
+    console.error('Route Error:', error);
+    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
 }
