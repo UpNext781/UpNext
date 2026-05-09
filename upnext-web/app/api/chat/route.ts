@@ -1,37 +1,26 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from "@google/generative-ai";
 
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY as string);
-
-// --- DISCOVERY ROUTE (GET) ---
-// This allows us to see exactly what models Google is offering your key.
-export async function GET() {
-  try {
-    const models = await genAI.listModels();
-    return NextResponse.json(models);
-  } catch (error) {
-    console.error("Discovery Error:", error);
-    return NextResponse.json({ error: "Failed to list models" }, { status: 500 });
-  }
-}
-
-// --- CHAT ROUTE (POST) ---
 export async function POST(req: Request) {
   try {
     const { text, voiceId } = await req.json();
+    const API_KEY = process.env.GEMINI_API_KEY;
 
-    // 1. Initialize Gemini (The Brain)
-    // We are using the most basic ID to see if it bypasses the 404
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-    
-    const persona = voiceId === 'dW1ILwbkaQ3MZyEBwl0f' 
-      ? "You are Lucas, a tactical noir strategist." 
-      : "You are Roxy, a sophisticated noir concierge.";
+    // 1. Direct Brain Connection (Bypassing the SDK)
+    const geminiResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
+      {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: `You are a noir strategist. Briefly respond to: ${text}` }] }]
+        })
+      }
+    );
 
-    const result = await model.generateContent(`${persona}\n\nUser: ${text}`);
-    const aiText = result.response.text();
+    const data = await geminiResponse.json();
+    const aiText = data.candidates[0].content.parts[0].text;
 
-    // 2. Call ElevenLabs (The Vocal Cords)
+    // 2. Vocal Cords Connection (ElevenLabs)
     const voiceResponse = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
       {
@@ -49,13 +38,10 @@ export async function POST(req: Request) {
     );
 
     const audioBuffer = await voiceResponse.arrayBuffer();
-    return new NextResponse(audioBuffer, {
-      headers: { 'Content-Type': 'audio/mpeg' },
-    });
+    return new NextResponse(audioBuffer, { headers: { 'Content-Type': 'audio/mpeg' } });
 
   } catch (error) {
-    // This will print the EXACT error message to your Vercel Logs
-    console.error('Tactical Error Detail:', error);
-    return NextResponse.json({ error: 'Internal Error' }, { status: 500 });
+    console.error('Tactical Failure:', error);
+    return NextResponse.json({ error: 'System Breach in API' }, { status: 500 });
   }
 }
