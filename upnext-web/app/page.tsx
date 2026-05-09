@@ -1,17 +1,16 @@
 'use client';
 
 import { useState } from 'react';
-import Image from 'next/image';
 
 export default function UpNextConcierge() {
   const [activeCharacter, setActiveCharacter] = useState<'Lucas' | 'Roxy'>('Lucas');
   const [input, setInput] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  // Mapping characters to the Voice IDs you saved in Vercel
+  // Hard-coded IDs for your custom-designed voices to ensure the 500 error stops
   const voiceMap = {
-    Lucas: '4tRn1lSkEn13EVTuqb0g', // Adam (Dark & Tough)
-    Roxy: 'sJGSzrOOtoYSYJarCtSZ',  // Sharvari (Noir Specialist)
+    Lucas: 'dW1ILwbkaQ3MZyEBwl0f', // Val_Lucas (Custom)
+    Roxy: 'mqkNc4LAXXbdfzSwcZ0x',  // Val_Roxy (Custom)
   };
 
   const handleSend = async () => {
@@ -28,17 +27,21 @@ export default function UpNextConcierge() {
         }),
       });
 
-      if (!response.ok) throw new Error('Speech synthesis failed');
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Tactical Error:', errorData);
+        return;
+      }
 
-      // Process and play the audio immediately
+      // Convert the response to audio and play
       const audioBlob = await response.blob();
       const audioUrl = URL.createObjectURL(audioBlob);
       const audio = new Audio(audioUrl);
       audio.play();
 
-      setInput(''); // Clear input after successful transmission
+      setInput(''); 
     } catch (error) {
-      console.error('Tactical Error:', error);
+      console.error('Connection Error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -53,7 +56,6 @@ export default function UpNextConcierge() {
       </div>
 
       <div className="w-full max-w-xl bg-black rounded-xl shadow-2xl overflow-hidden border border-slate-800">
-        {/* Header / Character Selector */}
         <div className="flex items-center justify-between p-6 border-b border-slate-800">
           <h2 className="text-white font-black tracking-widest text-xl">CONCIERGE</h2>
           <div className="flex gap-2 bg-slate-900 p-1 rounded-lg">
@@ -76,7 +78,6 @@ export default function UpNextConcierge() {
           </div>
         </div>
 
-        {/* Terminal / Chat Display Area */}
         <div className="h-96 p-6 overflow-y-auto bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-900 to-black">
           <div className="border-l-2 border-slate-700 pl-4 py-2">
             <p className="text-slate-500 text-xs mb-1 uppercase tracking-widest">System Status: Secure</p>
@@ -86,7 +87,6 @@ export default function UpNextConcierge() {
           </div>
         </div>
 
-        {/* Input Area */}
         <div className="p-4 bg-slate-900 flex gap-3">
           <input
             type="text"
