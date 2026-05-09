@@ -5,9 +5,9 @@ export async function POST(req: Request) {
     const { text, voiceId } = await req.json();
     const API_KEY = process.env.GEMINI_API_KEY;
 
-    // 1. Direct Handshake to Google
+    // 1. Direct Handshake to Google (Using stable gemini-pro)
     const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
