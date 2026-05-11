@@ -1,110 +1,25 @@
-'use client';
-
-import { useState } from 'react';
-
-export default function UpNextConcierge() {
-  const [activeCharacter, setActiveCharacter] = useState<'Lucas' | 'Roxy'>('Lucas');
-  const [input, setInput] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-
-  // Hard-coded IDs for your custom-designed voices to ensure the 500 error stops
-  const voiceMap = {
-    Lucas: 'dW1ILwbkaQ3MZyEBwl0f', // Val_Lucas (Custom)
-    Roxy: 'mqkNc4LAXXbdfzSwcZ0x',  // Val_Roxy (Custom)
-  };
-
-  const handleSend = async () => {
-    if (!input.trim() || isLoading) return;
-
-    setIsLoading(true);
-    try {
-      const response = await fetch('/api/chat', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          text: input,
-          voiceId: voiceMap[activeCharacter],
-        }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        console.error('Tactical Error:', errorData);
-        return;
-      }
-
-      // Convert the response to audio and play
-      const audioBlob = await response.blob();
-      const audioUrl = URL.createObjectURL(audioBlob);
-      const audio = new Audio(audioUrl);
-      audio.play();
-
-      setInput(''); 
-    } catch (error) {
-      console.error('Connection Error:', error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+export default function Page() {
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center bg-white p-4 font-sans text-slate-800">
-      <div className="max-w-2xl text-center mb-8">
-        <p className="text-sm uppercase tracking-widest text-slate-500 mb-2">Project Val Infrastructure</p>
-        <h1 className="text-4xl font-bold tracking-tighter mb-4">UPNEXT CONCIERGE</h1>
-        <p className="text-slate-600">Your high-end noir tactical strategist and protector. Choose your contact below.</p>
+    <div className="space-y-6">
+      <div className="bg-slate-900/50 border border-slate-800 p-8 rounded-2xl">
+        <h1 className="text-3xl font-bold text-white mb-2">Welcome back, Adam.</h1>
+        <p className="text-slate-400">Your operations are secure. Lucas and Roxy are online and monitoring the Vouch System.</p>
       </div>
 
-      <div className="w-full max-w-xl bg-black rounded-xl shadow-2xl overflow-hidden border border-slate-800">
-        <div className="flex items-center justify-between p-6 border-b border-slate-800">
-          <h2 className="text-white font-black tracking-widest text-xl">CONCIERGE</h2>
-          <div className="flex gap-2 bg-slate-900 p-1 rounded-lg">
-            <button
-              onClick={() => setActiveCharacter('Lucas')}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                activeCharacter === 'Lucas' ? 'bg-white text-black' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Lucas
-            </button>
-            <button
-              onClick={() => setActiveCharacter('Roxy')}
-              className={`px-4 py-1.5 rounded-md text-sm font-medium transition-all ${
-                activeCharacter === 'Roxy' ? 'bg-white text-black' : 'text-slate-400 hover:text-white'
-              }`}
-            >
-              Roxy
-            </button>
-          </div>
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="p-6 bg-slate-900/50 border border-slate-800 rounded-xl">
+          <h3 className="text-blue-400 font-semibold mb-1">Active Shifts</h3>
+          <p className="text-2xl font-bold text-white">12</p>
         </div>
-
-        <div className="h-96 p-6 overflow-y-auto bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-slate-900 to-black">
-          <div className="border-l-2 border-slate-700 pl-4 py-2">
-            <p className="text-slate-500 text-xs mb-1 uppercase tracking-widest">System Status: Secure</p>
-            <p className="text-white text-sm opacity-80">
-              {activeCharacter} is standing by. Send a transmission to begin.
-            </p>
-          </div>
+        <div className="p-6 bg-slate-900/50 border border-slate-800 rounded-xl">
+          <h3 className="text-purple-400 font-semibold mb-1">Safety Alerts</h3>
+          <p className="text-2xl font-bold text-white">0</p>
         </div>
-
-        <div className="p-4 bg-slate-900 flex gap-3">
-          <input
-            type="text"
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
-            placeholder={`Talk to ${activeCharacter}...`}
-            className="flex-1 bg-black border border-slate-700 rounded-md px-4 py-3 text-white focus:outline-none focus:border-white transition-colors"
-          />
-          <button
-            onClick={handleSend}
-            disabled={isLoading}
-            className="bg-white text-black font-bold px-6 py-3 rounded-md hover:bg-slate-200 transition-colors disabled:opacity-50"
-          >
-            {isLoading ? '...' : 'Send'}
-          </button>
+        <div className="p-6 bg-slate-900/50 border border-slate-800 rounded-xl">
+          <h3 className="text-green-400 font-semibold mb-1">Pending Vouches</h3>
+          <p className="text-2xl font-bold text-white">5</p>
         </div>
       </div>
-    </main>
+    </div>
   );
 }
