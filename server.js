@@ -40,20 +40,36 @@ app.post('/api/chat', async (req, res) => {
       return res.status(400).json({ error: "No messages provided" });
     }
 
-    const systemInstruction = characterPreference === 'Roxy' ? personas.Roxy : personas.Cosmo;
+    // Get the persona instruction
+    const personaInstruction = characterPreference === 'Roxy' ? personas.Roxy : personas.Cosmo;
 
+    // Initialize model WITHOUT systemInstruction parameter (causes 501 error)
     const model = genAI.getGenerativeModel({ 
-      model: "gemini-1.5-flash",
-      systemInstruction: systemInstruction 
+      model: "gemini-1.5-flash"
     });
 
-    // Format the conversation history for the Google SDK
-    const history = messages.slice(0, -1).map(m => ({
-      role: m.role === "user" ? "user" : "model",
-      parts: [{ text: m.content }],
-    }));
+    // Build conversation history with persona as first message
+    // The persona instruction goes in as the first system message
+    const history = [
+      {
+        role: "user",
+        parts: [{ text: personaInstruction }]
+      },
+      {
+        role: "model",
+        parts: [{ text: "Understood. I'm ready to assist as your concierge." }]
+      },
+      // Then add the actual conversation history
+      ...messages.slice(0, -1).map(m => ({
+        role: m.role === "user" ? "user" : "model",
+        parts: [{ text: m.content }],
+      }))
+    ];
 
+    // Start chat with the full history including persona
     const chat = model.startChat({ history });
+    
+    // Send only the latest user message
     const result = await chat.sendMessage(messages[messages.length - 1].content);
     const response = await result.response;
     
