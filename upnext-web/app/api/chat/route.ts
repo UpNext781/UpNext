@@ -5,29 +5,28 @@ export async function POST(req: Request) {
     const { text, voiceId } = await req.json();
     const API_KEY = process.env.GEMINI_API_KEY;
 
-    // 1. Direct Handshake to Google (Using Production v1 Endpoint)
+    // THE NAKED HANDSHAKE: No beta, no latest, just the core v1 path
     const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          contents: [{ parts: [{ text: `You are a noir strategist. Briefly respond to: ${text}` }] }]
+          contents: [{ parts: [{ text: text }] }]
         })
       }
     );
 
     const data = await geminiResponse.json();
 
-    // SENSOR: Catch the specific reason for failure
-    if (data.error || !data.candidates || data.candidates.length === 0) {
-      console.error('GOOGLE ERROR LOG:', JSON.stringify(data, null, 2));
-      return NextResponse.json({ error: 'Brain offline', detail: data }, { status: 500 });
+    if (data.error) {
+      console.error('GOOGLE RAW REJECTION:', JSON.stringify(data, null, 2));
+      return NextResponse.json({ error: 'Google Refused', detail: data }, { status: 500 });
     }
 
-    const aiText = data.candidates[0].content.parts[0].text;
+    const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "No response.";
 
-    // 2. Vocal Cords Connection (ElevenLabs)
+    // 2. Vocal Cords (ElevenLabs)
     const voiceResponse = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
       {
@@ -49,6 +48,6 @@ export async function POST(req: Request) {
 
   } catch (error) {
     console.error('Tactical Failure:', error);
-    return NextResponse.json({ error: 'Handshake Interrupted' }, { status: 500 });
+    return NextResponse.json({ error: 'Internal Crash' }, { status: 500 });
   }
 }
