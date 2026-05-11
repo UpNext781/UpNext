@@ -4,19 +4,21 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     
-    // Universal mapping to capture text from the Concierge UI or Admin Chat
+    // Unified mapping: Accepts 'text' from the landing page or 'messages' from the admin dashboard
     const promptText = body.text || body.message || (body.messages && body.messages[body.messages.length - 1]?.content);
+    
+    // Environment variables
     const API_KEY = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
     const voiceId = body.voiceId || process.env.ELEVENLABS_VOICE_ID;
 
     if (!promptText) {
-      console.error('ERROR: No input text detected in request body', body);
+      console.error('ERROR: No input text detected in request body:', body);
       return NextResponse.json({ error: 'No text provided' }, { status: 400 });
     }
 
-    // Using gemini-1.5-flash-latest with the v1beta endpoint for maximum stability
+    // Handshake with Gemini 2.0 Flash (The 2026 Stable Standard)
     const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-2.0-flash:generateContent?key=${API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -65,7 +67,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'ElevenLabs Failed', detail: voiceError }, { status: 500 });
     }
 
-    // Return the audio as a Base64 string for the browser to play
+    // Return binary audio as Base64 for the browser to play
     const audioArrayBuffer = await voiceResponse.arrayBuffer();
     const audioBuffer = Buffer.from(audioArrayBuffer);
     const audioBase64 = audioBuffer.toString('base64');
