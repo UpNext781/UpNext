@@ -1,23 +1,29 @@
-const db = require('./db');
+import { query } from './db.js';
 
 // Function to move a performer to "On-Stage"
 async function setPerformerLive(performerId, clubId, io) {
     try {
         // 1. Update the database
-        await db.query(
+        await query(
             'UPDATE entertainer_profiles SET current_status = $1 WHERE id = $2',
             ['on-stage', performerId]
         );
 
         // 2. Fetch the updated lineup for that club
-        const result = await db.query(
+        const result = await query(
             'SELECT stage_name FROM entertainer_profiles WHERE id = $1',
             [performerId]
         );
 
-        const stageName = result.rows.stage_name;
+        // 3. Safely access the result
+        if (!result.rows || result.rows.length === 0) {
+            console.error('No performer found with id:', performerId);
+            return;
+        }
 
-        // 3. Broadcast to all patrons in real-time via Socket.io
+        const stageName = result.rows[0].stage_name;
+
+        // 4. Broadcast to all patrons in real-time via Socket.io
         io.emit('lineupChanged', {
             current: stageName,
             status: 'LIVE',
@@ -30,4 +36,4 @@ async function setPerformerLive(performerId, clubId, io) {
     }
 }
 
-module.exports = { setPerformerLive };
+export { setPerformerLive };
