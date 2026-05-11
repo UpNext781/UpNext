@@ -4,7 +4,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     
-    // Universal mapping to capture text from any of your frontend components
+    // Universal mapping to capture text from the Concierge UI or Admin Chat
     const promptText = body.text || body.message || (body.messages && body.messages[body.messages.length - 1]?.content);
     const API_KEY = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
     const voiceId = body.voiceId || process.env.ELEVENLABS_VOICE_ID;
@@ -14,9 +14,9 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'No text provided' }, { status: 400 });
     }
 
-    // Using v1beta for guaranteed 1.5-flash compatibility
+    // Using gemini-1.5-flash-latest with the v1beta endpoint for maximum stability
     const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -25,7 +25,10 @@ export async function POST(req: Request) {
             role: "user", 
             parts: [{ text: `You are a weary but sharp noir tactical strategist. Reply to this: ${promptText}` }] 
           }],
-          generationConfig: { temperature: 0.7, maxOutputTokens: 250 }
+          generationConfig: { 
+            temperature: 0.7, 
+            maxOutputTokens: 250 
+          }
         })
       }
     );
@@ -62,6 +65,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'ElevenLabs Failed', detail: voiceError }, { status: 500 });
     }
 
+    // Return the audio as a Base64 string for the browser to play
     const audioArrayBuffer = await voiceResponse.arrayBuffer();
     const audioBuffer = Buffer.from(audioArrayBuffer);
     const audioBase64 = audioBuffer.toString('base64');
