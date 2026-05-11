@@ -5,7 +5,7 @@ export async function POST(req: Request) {
     const { text, voiceId } = await req.json();
     const API_KEY = process.env.GEMINI_API_KEY;
 
-    // 1. Direct Handshake to Google (Using modern gemini-1.5-flash)
+    // 1. Direct Handshake to Google (Using THE modern 1.5-flash endpoint)
     const geminiResponse = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
       {
@@ -19,9 +19,9 @@ export async function POST(req: Request) {
 
     const data = await geminiResponse.json();
 
-    // SENSOR 2.0: Dump the entire raw payload if candidates are missing
+    // SENSOR: Catch the specific reason for failure
     if (data.error || !data.candidates || data.candidates.length === 0) {
-      console.error('GOOGLE RAW PAYLOAD:', JSON.stringify(data, null, 2));
+      console.error('GOOGLE ERROR LOG:', JSON.stringify(data, null, 2));
       return NextResponse.json({ error: 'Brain offline', detail: data }, { status: 500 });
     }
 
