@@ -20,51 +20,49 @@ interface LineupItem {
 export default function StageViewPage() {
   const [lineup, setLineup] = useState<LineupItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [clubId, setClubId] = useState<number>(1) // Default to first club
+  const [clubId] = useState<number>(1) // Hardcoded to 1 for initial build
+
+  // Helper function to fetch the full lineup including performer names
+  const fetchLineup = async () => {
+    const supabase = createClient()
+    
+    const { data, error } = await supabase
+      .from('lineups')
+      .select(`
+        id,
+        entertainer_id,
+        sort_order,
+        estimated_start,
+        entertainer:entertainer_profiles(
+          id,
+          stage_name,
+          is_premium
+        )
+      `)
+      .eq('club_id', clubId)
+      .order('sort_order', { ascending: true })
+
+    if (error) {
+      console.error('Fetch error:', error)
+    } else {
+      setLineup(data as unknown as LineupItem[] || [])
+    }
+    setLoading(false)
+  }
 
   useEffect(() => {
-    const fetchLineup = async () => {
-      const supabase = createClient()
-      
-      const { data } = await supabase
-        .from('lineups')
-        .select(`
-          id,
-          entertainer_id,
-          sort_order,
-          estimated_start,
-          entertainer:entertainer_profiles(
-            id,
-            stage_name,
-            is_premium
-          )
-        `)
-        .eq('club_id', clubId)
-        .order('sort_order', { ascending: true })
-
-      setLineup(data as LineupItem[] || [])
-      setLoading(false)
-    }
-
     fetchLineup()
 
-    // Subscribe to real-time updates
+    // Subscribe to real-time updates from Supabase
     const supabase = createClient()
     const subscription = supabase
-      .channel('lineups')
+      .channel('lineup-realtime')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'lineups' },
-        (payload) => {
-          if (payload.eventType === 'INSERT') {
-            setLineup(prev => [...prev, payload.new as LineupItem])
-          } else if (payload.eventType === 'UPDATE') {
-            setLineup(prev => prev.map(item => 
-              item.id === payload.new.id ? payload.new as LineupItem : item
-            ))
-          } else if (payload.eventType === 'DELETE') {
-            setLineup(prev => prev.filter(item => item.id !== payload.old.id))
-          }
+        () => {
+          console.log('Change detected in lineup table - Refreshing...')
+          fetchLineup() // Re-fetch to get the full profile objects
         }
       )
       .subscribe()
@@ -76,89 +74,75 @@ export default function StageViewPage() {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="flex items-center justify-center min-h-screen bg-black">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-purple-600"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black">
+    <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black text-white">
       {/* Header */}
-      <header className="bg-black/50 backdrop-blur-md border-b border-purple-500/20">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <header className="bg-black/50 backdrop-blur-md border-b border-purple-500/20 p-6">
+        <div className="max-w-7xl mx-auto">
           <h1 className="text-4xl font-bold text-transparent bg-clip-text bg-gradient-to-r from-purple-400 to-pink-600">
             🎭 The Emerald Lounge
           </h1>
-          <p className="text-purple-300 mt-2">High Energy Vibe</p>
+          <p className="text-purple-300 mt-2">Verified Real-Time Lineup</p>
         </div>
       </header>
 
-      {/* Main Content */}
-      <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-        {/* Now Playing */}
-        {lineup.length > 0 && (
+      <main className="max-w-7xl mx-auto px-4 py-12">
+        {/* Now Playing Section */}
+        {lineup.length > 0 ? (
           <div className="mb-12">
-            <div className="bg-gradient-to-r from-pink-600 to-purple-600 rounded-lg p-8 text-white shadow-2xl">
-              <div className="text-sm uppercase tracking-widest mb-2 opacity-90">Now Playing</div>
-              <h2 className="text-5xl font-bold mb-4">{lineup[0]?.entertainer?.stage_name}</h2>
+            <div className="bg-gradient-to-r from-pink-600 to-purple-600 rounded-2xl p-8 shadow-2xl border border-white/10">
+              <div className="text-sm uppercase tracking-widest mb-2 text-white/80">On Stage Now</div>
+              <h2 className="text-6xl font-black mb-6">
+                {lineup[0].entertainer?.stage_name || 'TBA'}
+              </h2>
               <div className="flex items-center gap-4">
-                <span className="inline-block px-4 py-2 bg-green-400 text-black rounded-full font-bold text-sm">
-                  ON STAGE NOW
+                <span className="bg-green-400 text-black px-4 py-2 rounded-full font-bold text-xs animate-pulse">
+                  LIVE
                 </span>
-                <button className="px-6 py-3 bg-white text-pink-600 rounded-lg font-bold hover:bg-gray-100 transition-colors">
-                  💰 Tip Now
+                <button className="bg-white text-purple-600 px-6 py-3 rounded-xl font-bold hover:bg-gray-100 transition-all">
+                  💰 Tip Performer
                 </button>
               </div>
             </div>
           </div>
+        ) : (
+          <div className="text-center py-20 bg-gray-800/20 rounded-2xl border border-dashed border-gray-700">
+            <p className="text-gray-400">No performers currently scheduled.</p>
+          </div>
         )}
 
         {/* Up Next Queue */}
-        <div>
-          <h3 className="text-2xl font-bold text-white mb-6">Up Next</h3>
-          <div className="space-y-4">
-            {lineup.slice(1).map((item, index) => (
-              <div
-                key={item.id}
-                className="bg-gray-800/50 backdrop-blur-sm border border-purple-500/30 rounded-lg p-6 hover:border-purple-500 transition-colors"
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-4">
-                    <div className="text-3xl font-bold text-purple-400">#{index + 2}</div>
+        {lineup.length > 1 && (
+          <div>
+            <h3 className="text-2xl font-bold mb-6 text-purple-200">Coming Up</h3>
+            <div className="space-y-4">
+              {lineup.slice(1).map((item, index) => (
+                <div
+                  key={item.id}
+                  className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6 flex items-center justify-between hover:border-purple-500/50 transition-all"
+                >
+                  <div className="flex items-center gap-6">
+                    <div className="text-4xl font-black text-purple-500/50">#{index + 2}</div>
                     <div>
-                      <h4 className="text-xl font-bold text-white flex items-center gap-2">
+                      <h4 className="text-2xl font-bold">
                         {item.entertainer?.stage_name}
-                        {item.entertainer?.is_premium && (
-                          <span className="text-yellow-400">⭐</span>
-                        )}
+                        {item.entertainer?.is_premium && <span className="ml-2">⭐</span>}
                       </h4>
-                      <p className="text-purple-300 text-sm">
-                        In approximately {10 + index * 15} minutes
-                      </p>
+                      <p className="text-purple-400 text-sm mt-1">Ready in ~{15 + index * 15} mins</p>
                     </div>
                   </div>
-                  <div className="w-24 h-24 bg-gradient-to-br from-purple-500 to-pink-600 rounded-lg flex items-center justify-center text-white text-2xl">
-                    🎭
-                  </div>
+                  <div className="hidden sm:block text-5xl opacity-20">🎭</div>
                 </div>
-                <div className="mt-4 w-full bg-gray-700 rounded-full h-2">
-                  <div
-                    className="bg-gradient-to-r from-purple-500 to-pink-600 h-2 rounded-full"
-                    style={{ width: `${(index + 1) * 15}%` }}
-                  ></div>
-                </div>
-              </div>
-            ))}
+              ))}
+            </div>
           </div>
-        </div>
-
-        {/* Follow House Lineup */}
-        <div className="mt-12">
-          <button className="w-full px-6 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-bold transition-colors">
-            ⭐ Follow This Lineup
-          </button>
-        </div>
+        )}
       </main>
     </div>
   )
