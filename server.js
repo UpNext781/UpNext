@@ -16,24 +16,22 @@ const io = new Server(httpServer, {
   }
 });
 
-// Standard Middleware
 app.use(cors());
 app.use(express.json());
 
-// Initialize Gemini with v1 API Version to avoid 404 "Not Found" errors
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "", { apiVersion: 'v1' });
+// Initialize Gemini with the latest production-stable version
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 const personas = {
   Roxy: "You are Roxy, a high-end noir concierge with a strip club veteran edge. You sound sweet but you've seen it all and don't take shit. Your mission is the safety and prosperity of the dancers. Be warm, protective, and always put their needs first.",
-  Cosmo: "You are Cosmo, a high-end noir concierge. You are witty, slightly eccentric, and a fiercely loyal second-in-command. You are the 'eyes and ears' of the club. You are playful but tactically sharp. Support the team with intelligence and heart."
+  Cosmo: "You are Cosmo, a high-end noir concierge. You are witty, slightly eccentric, and a fiercely loyal second-in-command. You are playfull but tactically sharp. Support the team with intelligence and heart."
 };
 
-// Health check endpoint
 app.get('/', (req, res) => {
-  res.send('UpNext Server is Online. The Second-in-Command is observing.');
+  res.send('UpNext Backend is Online. Operation Secure.');
 });
 
-// THE AI CHAT ROUTE
+// THE AI CHAT ROUTE (Root Backend)
 app.post('/api/chat', async (req, res) => {
   try {
     const { messages, characterPreference } = req.body;
@@ -44,10 +42,10 @@ app.post('/api/chat', async (req, res) => {
 
     const personaInstruction = characterPreference === 'Roxy' ? personas.Roxy : personas.Cosmo;
 
-    // Use stable gemini-1.5-flash model
-    const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+    // Use the 2026 stable model: gemini-2.0-flash
+    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
 
-    // Format history: Inject persona as the first message to avoid 501 "Unimplemented" errors
+    // Format history for the Chat interface
     const history = [
       {
         role: "user",
@@ -59,26 +57,25 @@ app.post('/api/chat', async (req, res) => {
       },
       ...messages.slice(0, -1).map(m => ({
         role: m.role === "user" ? "user" : "model",
-        parts: [{ text: m.content }],
+        parts: [{ text: m.content || m.text }],
       }))
     ];
 
     const chat = model.startChat({ history });
-    const latestMessage = messages[messages.length - 1].content;
+    const latestMessage = messages[messages.length - 1].content || messages[messages.length - 1].text;
     
     const result = await chat.sendMessage(latestMessage);
     const response = await result.response;
     
     res.json({ text: response.text() });
   } catch (error) {
-    console.error("Concierge Error:", error);
+    console.error("Concierge Backend Error:", error);
     res.status(500).json({ error: "The concierge is currently unavailable." });
   }
 });
 
-// Socket.io connection handler
 io.on('connection', (socket) => {
-  console.log('New client connected:', socket.id);
+  console.log('Client connected to Real-Time Bridge:', socket.id);
   
   socket.on('disconnect', () => {
     console.log('Client disconnected:', socket.id);
@@ -87,7 +84,7 @@ io.on('connection', (socket) => {
 
 const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, () => {
-  console.log(`UpNext Server running on port ${PORT}`);
+  console.log(`UpNext Root Backend running on port ${PORT}`);
 });
 
 export default app;
