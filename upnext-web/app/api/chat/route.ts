@@ -4,19 +4,19 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     
-    // Support for multiple input formats (text from page.tsx, messages from ChatInterface)
+    // Support for multiple input formats: 'text' (UI), 'message' (Tests), or 'messages' (Dashboard)
     const promptText = body.text || body.message || (body.messages && body.messages[body.messages.length - 1]?.content);
     const API_KEY = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
     const voiceId = body.voiceId || process.env.ELEVENLABS_VOICE_ID;
 
     if (!promptText) {
-      console.error('API Error: No prompt text provided in request body');
+      console.error('API Error: No input text detected in request body:', body);
       return NextResponse.json({ error: 'No text provided' }, { status: 400 });
     }
 
-    // Using gemini-3.1-flash (The stable production standard as of May 2026)
+    // Using gemini-3.1-flash-lite (Generally Available as of May 7, 2026)
     const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-3.1-flash:generateContent?key=${API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1/models/gemini-3.1-flash-lite:generateContent?key=${API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
