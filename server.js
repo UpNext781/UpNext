@@ -19,19 +19,19 @@ const io = new Server(httpServer, {
 app.use(cors());
 app.use(express.json());
 
-// Initialize Gemini with the latest production-stable version
+// Initialize Gemini with the 2026 production-stable model
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || "");
 
 const personas = {
   Roxy: "You are Roxy, a high-end noir concierge with a strip club veteran edge. You sound sweet but you've seen it all and don't take shit. Your mission is the safety and prosperity of the dancers. Be warm, protective, and always put their needs first.",
-  Cosmo: "You are Cosmo, a high-end noir concierge. You are witty, slightly eccentric, and a fiercely loyal second-in-command. You are playfull but tactically sharp. Support the team with intelligence and heart."
+  Cosmo: "You are Cosmo, a high-end noir concierge. You are witty, slightly eccentric, and a fiercely loyal second-in-command. You are playful but tactically sharp. Support the team with intelligence and heart."
 };
 
 app.get('/', (req, res) => {
-  res.send('UpNext Backend is Online. Operation Secure.');
+  res.send('UpNext Secure Backend Online.');
 });
 
-// THE AI CHAT ROUTE (Root Backend)
+// AI Chat Gateway
 app.post('/api/chat', async (req, res) => {
   try {
     const { messages, characterPreference } = req.body;
@@ -42,10 +42,10 @@ app.post('/api/chat', async (req, res) => {
 
     const personaInstruction = characterPreference === 'Roxy' ? personas.Roxy : personas.Cosmo;
 
-    // Use the 2026 stable model: gemini-2.0-flash
-    const model = genAI.getGenerativeModel({ model: "gemini-2.0-flash" });
+    // Utilizing gemini-2.5-flash for stable production inference
+    const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 
-    // Format history for the Chat interface
+    // Formatting history to avoid 501 Unimplemented errors
     const history = [
       {
         role: "user",
@@ -53,7 +53,7 @@ app.post('/api/chat', async (req, res) => {
       },
       {
         role: "model",
-        parts: [{ text: "Understood. I am your concierge. How can I assist with the operation today?" }]
+        parts: [{ text: "Understood. I am your concierge. Standing by for instructions." }]
       },
       ...messages.slice(0, -1).map(m => ({
         role: m.role === "user" ? "user" : "model",
@@ -69,22 +69,22 @@ app.post('/api/chat', async (req, res) => {
     
     res.json({ text: response.text() });
   } catch (error) {
-    console.error("Concierge Backend Error:", error);
-    res.status(500).json({ error: "The concierge is currently unavailable." });
+    console.error("Concierge Error:", error);
+    res.status(500).json({ error: "Voice module offline. Concierge is currently unavailable." });
   }
 });
 
 io.on('connection', (socket) => {
-  console.log('Client connected to Real-Time Bridge:', socket.id);
+  console.log('Secure Socket Link Established:', socket.id);
   
   socket.on('disconnect', () => {
-    console.log('Client disconnected:', socket.id);
+    console.log('Secure Socket Link Terminated:', socket.id);
   });
 });
 
 const PORT = process.env.PORT || 3001;
 httpServer.listen(PORT, () => {
-  console.log(`UpNext Root Backend running on port ${PORT}`);
+  console.log(`UpNext Root Backend active on port ${PORT}`);
 });
 
 export default app;
