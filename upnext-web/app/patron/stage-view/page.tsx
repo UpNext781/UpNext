@@ -20,9 +20,9 @@ interface LineupItem {
 export default function StageViewPage() {
   const [lineup, setLineup] = useState<LineupItem[]>([])
   const [loading, setLoading] = useState(true)
-  const [clubId] = useState<number>(1) // Defaulting to the Main Venue
+  const [clubId] = useState<number>(1) // Default to Main Venue
 
-  // Fetcher that ensures we get the full Performer Profile joined with the Lineup data
+  // Fetcher to pull the lineup including joined Performer Profiles
   const fetchLineup = async () => {
     const supabase = createClient()
     
@@ -43,7 +43,7 @@ export default function StageViewPage() {
       .order('sort_order', { ascending: true })
 
     if (error) {
-      console.error('Supabase Fetch Error:', error)
+      console.error('Supabase Sync Error:', error)
     } else {
       setLineup(data as unknown as LineupItem[] || [])
     }
@@ -51,19 +51,18 @@ export default function StageViewPage() {
   }
 
   useEffect(() => {
-    // Initial data load
     fetchLineup()
 
-    // Real-time listener: Re-fetches the entire joined list whenever the lineup table changes
+    // Subscribe to DB changes and re-fetch to get full profile data
     const supabase = createClient()
     const subscription = supabase
-      .channel('lineup-live-updates')
+      .channel('lineup-live')
       .on(
         'postgres_changes',
         { event: '*', schema: 'public', table: 'lineups' },
         () => {
-          console.log('Database Update Detected - Synchronizing Stage View...')
-          fetchLineup() 
+          console.log('Lineup modified - Syncing Stage View...');
+          fetchLineup(); 
         }
       )
       .subscribe()
@@ -83,7 +82,6 @@ export default function StageViewPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-900 via-purple-900 to-black text-white">
-      {/* Header */}
       <header className="bg-black/50 backdrop-blur-md border-b border-purple-500/20 p-6">
         <div className="max-w-7xl mx-auto flex justify-between items-center">
           <div>
@@ -94,14 +92,13 @@ export default function StageViewPage() {
           </div>
           <div className="text-right">
             <span className="bg-green-500/10 text-green-400 text-xs font-bold px-3 py-1 rounded-full border border-green-500/20">
-              LIVE TRACKING ACTIVE
+              LIVE
             </span>
           </div>
         </div>
       </header>
 
       <main className="max-w-7xl mx-auto px-4 py-12">
-        {/* On Stage Hero Section */}
         {lineup.length > 0 ? (
           <div className="mb-12">
             <div className="bg-gradient-to-r from-pink-600 to-purple-600 rounded-2xl p-8 shadow-2xl border border-white/10">
@@ -121,11 +118,10 @@ export default function StageViewPage() {
           </div>
         ) : (
           <div className="text-center py-20 bg-gray-800/20 rounded-2xl border border-dashed border-gray-700">
-            <p className="text-gray-400 text-lg">The stage is currently clear. Check back shortly.</p>
+            <p className="text-gray-400 text-lg">Stage currently clear.</p>
           </div>
         )}
 
-        {/* Coming Up Queue */}
         {lineup.length > 1 && (
           <div>
             <h3 className="text-2xl font-bold mb-6 text-purple-200 border-l-4 border-purple-500 pl-4">Coming Up Next</h3>
@@ -136,7 +132,7 @@ export default function StageViewPage() {
                   className="bg-white/5 backdrop-blur-sm border border-purple-500/20 rounded-xl p-6 flex items-center justify-between hover:border-purple-500/50 transition-all group"
                 >
                   <div className="flex items-center gap-6">
-                    <div className="text-4xl font-black text-purple-500/30 group-hover:text-purple-500 transition-colors">
+                    <div className="text-4xl font-black text-purple-500/30">
                       #{index + 2}
                     </div>
                     <div>
@@ -147,7 +143,7 @@ export default function StageViewPage() {
                         )}
                       </h4>
                       <p className="text-purple-400 text-sm mt-1">
-                        Est. Stage Time: ~{10 + index * 15} minutes
+                        Estimated Stage Time: ~{10 + index * 15} minutes
                       </p>
                     </div>
                   </div>
@@ -159,13 +155,6 @@ export default function StageViewPage() {
             </div>
           </div>
         )}
-
-        {/* Footer Interaction */}
-        <div className="mt-12">
-          <button className="w-full px-6 py-4 bg-purple-600 hover:bg-purple-500 text-white rounded-xl font-bold transition-all shadow-xl active:scale-98">
-            🔔 Notify Me When My Favorites Hit The Stage
-          </button>
-        </div>
       </main>
     </div>
   )
