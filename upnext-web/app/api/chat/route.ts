@@ -3,29 +3,27 @@ import { NextResponse } from 'next/server';
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    // 1. Fix: Support both 'text' (from your UI) and 'message' (from your tests)
-    const promptText = body.text || body.message;
     
-    // 2. Fix: Check both common API key names to be safe
+    // Universal mapping to capture text from any of your frontend components
+    const promptText = body.text || body.message || (body.messages && body.messages[body.messages.length - 1]?.content);
     const API_KEY = process.env.GOOGLE_API_KEY || process.env.GEMINI_API_KEY;
-    
-    // 3. Fix: Use the 'voiceId' sent from the frontend, or fall back to env
     const voiceId = body.voiceId || process.env.ELEVENLABS_VOICE_ID;
 
     if (!promptText) {
+      console.error('ERROR: No input text detected in request body', body);
       return NextResponse.json({ error: 'No text provided' }, { status: 400 });
     }
 
-    // 4. Fix: Switched to the stable /v1/ endpoint to resolve the 404
+    // Using v1beta for guaranteed 1.5-flash compatibility
     const geminiResponse = await fetch(
-      `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${API_KEY}`,
       {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           contents: [{ 
             role: "user", 
-            parts: [{ text: `You are Lucas, a weary but sharp noir tactical strategist. Reply to this: ${promptText}` }] 
+            parts: [{ text: `You are a weary but sharp noir tactical strategist. Reply to this: ${promptText}` }] 
           }],
           generationConfig: { temperature: 0.7, maxOutputTokens: 250 }
         })
@@ -41,7 +39,7 @@ export async function POST(req: Request) {
 
     const aiText = data.candidates?.[0]?.content?.parts?.[0]?.text || "Status unclear.";
 
-    // 5. ElevenLabs Handshake
+    // ElevenLabs TTS Handshake
     const voiceResponse = await fetch(
       `https://api.elevenlabs.io/v1/text-to-speech/${voiceId}`,
       {
