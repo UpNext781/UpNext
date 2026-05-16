@@ -34,7 +34,12 @@ import {
   RefreshCw,
   Lock,
   ShieldCheck,
-  ImageIcon
+  ImageIcon,
+  Activity,
+  AlertTriangle,
+  Gauge,
+  ChevronUp,
+  ChevronDown
 } from 'lucide-react';
 
 type PortalMode = 'public' | 'operator';
@@ -1038,6 +1043,9 @@ function OperatorApp({ syncWithYantra, isLoading }: OperatorAppProps) {
         </button>
       </div>
 
+      {/* The Market Pulse - Predictive Intelligence Panel */}
+      <MarketPulse syncWithYantra={syncWithYantra} discretionMode={discretionMode} isLoading={isLoading} />
+
       {/* Shift Ledger - Mobile-optimized roster */}
       <div className="glass-card p-5 md:p-6">
         <div className="flex items-center justify-between mb-5">
@@ -1157,6 +1165,480 @@ function OperatorApp({ syncWithYantra, isLoading }: OperatorAppProps) {
           onToggle={toggleAvailability}
           disabled={isLoading}
         />
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// MARKET PULSE COMPONENT
+// "Deployment Intelligence" - Predictive A.S.S.
+// (Aesthetic, Surge, and Saturation) matching
+// ============================================
+
+interface MarketPulseProps {
+  syncWithYantra: (action: string, payload: Record<string, unknown>) => Promise<{ success: boolean }>;
+  discretionMode: boolean;
+  isLoading: boolean;
+}
+
+interface VenueIntel {
+  id: string;
+  name: string;
+  area: string;
+  assScore: number;
+  aesthetic: number;
+  surge: number;
+  saturation: number;
+  estEarnings: string;
+  peakWindow: string;
+  image: string;
+}
+
+function MarketPulse({ syncWithYantra, discretionMode, isLoading }: MarketPulseProps) {
+  const [isLocking, setIsLocking] = useState(false);
+  const [isLocked, setIsLocked] = useState(false);
+  const [expandedAlerts, setExpandedAlerts] = useState(true);
+
+  const topMatch: VenueIntel = {
+    id: 'venue_christies_001',
+    name: "Christie's Cabaret",
+    area: 'Tempe',
+    assScore: 96,
+    aesthetic: 98,
+    surge: 94,
+    saturation: 31,
+    estEarnings: '$1,200 - $1,800',
+    peakWindow: '11:00 PM - 2:00 AM',
+    image: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&h=400&fit=crop'
+  };
+
+  const alternatives: VenueIntel[] = [
+    {
+      id: 'venue_legirls_002',
+      name: 'Le Girls',
+      area: 'West Valley',
+      assScore: 82,
+      aesthetic: 85,
+      surge: 78,
+      saturation: 54,
+      estEarnings: '$800 - $1,100',
+      peakWindow: '10:00 PM - 1:00 AM',
+      image: 'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=600&h=400&fit=crop'
+    },
+    {
+      id: 'venue_bourbon_003',
+      name: 'Bourbon Street',
+      area: 'Central Phoenix',
+      assScore: 74,
+      aesthetic: 79,
+      surge: 88,
+      saturation: 67,
+      estEarnings: '$650 - $950',
+      peakWindow: '12:00 AM - 3:00 AM',
+      image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&h=400&fit=crop'
+    },
+    {
+      id: 'venue_dragonfly_004',
+      name: 'Skin Scottsdale',
+      area: 'Old Town',
+      assScore: 69,
+      aesthetic: 72,
+      surge: 65,
+      saturation: 78,
+      estEarnings: '$500 - $800',
+      peakWindow: '9:00 PM - 12:00 AM',
+      image: 'https://images.unsplash.com/photo-1514525253161-7a46d19cd819?w=600&h=400&fit=crop'
+    }
+  ];
+
+  const alerts = [
+    {
+      id: 'alert_1',
+      type: 'vip' as const,
+      title: 'High-Roller Inbound',
+      message: "Recurring VIP client 'Blackcard-7' has reserved Table 3 at Christie's. Historical tip avg: $340/session.",
+      time: '12 min ago'
+    },
+    {
+      id: 'alert_2',
+      type: 'roster' as const,
+      title: 'Roster Gap Detected',
+      message: "Le Girls main floor is 2 performers below Friday baseline. Surge multiplier is active \u2014 2.1x payout window.",
+      time: '28 min ago'
+    },
+    {
+      id: 'alert_3',
+      type: 'vip' as const,
+      title: 'Corporate Block Booking',
+      message: "Enterprise group of 8 confirmed at Bourbon Street VIP. Pre-paid bottle service + $200 talent gratuity pool.",
+      time: '45 min ago'
+    }
+  ];
+
+  const handleLockShift = async () => {
+    setIsLocking(true);
+    await syncWithYantra('ass_match_lock', {
+      venue_id: topMatch.id,
+      ass_score: topMatch.assScore,
+      aesthetic: topMatch.aesthetic,
+      surge: topMatch.surge,
+      saturation: topMatch.saturation,
+      peak_window: topMatch.peakWindow,
+      timestamp: new Date().toISOString()
+    });
+    setIsLocking(false);
+    setIsLocked(true);
+    setTimeout(() => setIsLocked(false), 5000);
+  };
+
+  const getScoreColor = (score: number) => {
+    if (score >= 90) return 'text-accent-gold';
+    if (score >= 75) return 'text-foreground';
+    if (score >= 60) return 'text-warning';
+    return 'text-accent-crimson-light';
+  };
+
+  const getScoreBarColor = (score: number) => {
+    if (score >= 90) return 'bg-accent-gold';
+    if (score >= 75) return 'bg-foreground/60';
+    if (score >= 60) return 'bg-warning';
+    return 'bg-accent-crimson';
+  };
+
+  const getSaturationLabel = (sat: number) => {
+    if (sat <= 35) return { label: 'Low', color: 'text-emerald-400' };
+    if (sat <= 60) return { label: 'Moderate', color: 'text-warning' };
+    return { label: 'Crowded', color: 'text-accent-crimson-light' };
+  };
+
+  return (
+    <div className="space-y-4">
+      {/* Oracle Header */}
+      <div className="glass-card-glow p-5 md:p-6 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-r from-accent-gold/5 via-transparent to-accent-crimson/5"></div>
+        <div className="relative">
+          <div className="flex items-center justify-between mb-1">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-accent-gold/25 to-accent-crimson/15 flex items-center justify-center">
+                <Activity className="w-4 h-4 text-accent-gold" />
+              </div>
+              <div>
+                <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-muted-foreground">
+                  Deployment Intelligence <span className="text-accent-gold">//</span> Live A.S.S. Matching
+                </h2>
+                <p className="text-[10px] uppercase tracking-wider text-muted-foreground/50">
+                  Aesthetic, Surge & Saturation Analysis
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="text-[10px] font-bold uppercase tracking-wider">Live</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Top Match Card */}
+      <div className="glass-card-glow p-5 md:p-6 relative overflow-hidden">
+        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-gold/50 to-transparent"></div>
+        
+        {/* Match Badge */}
+        <div className="flex items-center justify-between mb-5">
+          <div className="flex items-center gap-2">
+            <Crown className="w-4 h-4 text-accent-gold" />
+            <span className="text-xs font-bold uppercase tracking-[0.2em] text-accent-gold">#1 Optimal Destination</span>
+          </div>
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Gauge className="w-3.5 h-3.5 text-accent-gold" />
+            <span>Model v3.2</span>
+          </div>
+        </div>
+
+        <div className="flex flex-col md:flex-row gap-6">
+          {/* Venue Image + Name */}
+          <div className="relative w-full md:w-56 h-40 md:h-auto rounded-xl overflow-hidden flex-shrink-0">
+            <Image
+              src={topMatch.image}
+              alt={topMatch.name}
+              fill
+              className="object-cover"
+            />
+            <div className="absolute inset-0 bg-gradient-to-t from-background/90 via-background/30 to-transparent"></div>
+            <div className="absolute bottom-3 left-3 right-3">
+              <h3 className="text-lg font-display font-bold italic text-foreground">
+                {discretionMode ? '••••••••••' : topMatch.name}
+              </h3>
+              <div className="flex items-center gap-1.5 text-xs text-muted-foreground mt-0.5">
+                <MapPin className="w-3 h-3" />
+                <span>{topMatch.area}</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Score Breakdown */}
+          <div className="flex-1 space-y-5">
+            {/* Big A.S.S. Score */}
+            <div className="flex items-center gap-4">
+              <div className="text-center">
+                <p className={`text-5xl font-display font-bold italic ${getScoreColor(topMatch.assScore)} ${discretionMode ? 'blur-md select-none' : ''}`}>
+                  {topMatch.assScore}
+                </p>
+                <p className="text-[10px] uppercase tracking-[0.2em] text-muted-foreground mt-1">A.S.S. Score</p>
+              </div>
+              <div className="flex-1 space-y-1">
+                <p className="text-xs text-muted-foreground">Peak earning potential tonight</p>
+                <p className={`text-lg font-bold text-accent-gold ${discretionMode ? 'blur-sm select-none' : ''}`}>
+                  {discretionMode ? '••••••' : topMatch.estEarnings}
+                </p>
+                <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Clock className="w-3 h-3" />
+                  <span>Peak: {topMatch.peakWindow}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* A.S.S. Breakdown Grid */}
+            <div className="grid grid-cols-3 gap-4">
+              {/* Aesthetic */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Aesthetic</p>
+                  <span className={`text-sm font-bold ${getScoreColor(topMatch.aesthetic)} ${discretionMode ? 'blur-sm select-none' : ''}`}>
+                    {topMatch.aesthetic}
+                  </span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-surface-elevated overflow-hidden">
+                  <div 
+                    className={`h-full rounded-full ${getScoreBarColor(topMatch.aesthetic)} transition-all`}
+                    style={{ width: `${topMatch.aesthetic}%` }}
+                  ></div>
+                </div>
+                <p className="text-[9px] text-muted-foreground/50">Brand alignment match</p>
+              </div>
+
+              {/* Surge */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Surge</p>
+                  <span className={`text-sm font-bold ${getScoreColor(topMatch.surge)} ${discretionMode ? 'blur-sm select-none' : ''}`}>
+                    {topMatch.surge}
+                  </span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-surface-elevated overflow-hidden">
+                  <div 
+                    className={`h-full rounded-full ${getScoreBarColor(topMatch.surge)} transition-all`}
+                    style={{ width: `${topMatch.surge}%` }}
+                  ></div>
+                </div>
+                <p className="text-[9px] text-muted-foreground/50">VIP capacity demand</p>
+              </div>
+
+              {/* Saturation */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">Saturation</p>
+                  <span className={`text-sm font-bold ${getSaturationLabel(topMatch.saturation).color} ${discretionMode ? 'blur-sm select-none' : ''}`}>
+                    {topMatch.saturation}%
+                  </span>
+                </div>
+                <div className="w-full h-1.5 rounded-full bg-surface-elevated overflow-hidden">
+                  <div 
+                    className="h-full rounded-full bg-emerald-500 transition-all"
+                    style={{ width: `${topMatch.saturation}%` }}
+                  ></div>
+                </div>
+                <p className={`text-[9px] ${getSaturationLabel(topMatch.saturation).color}`}>
+                  {getSaturationLabel(topMatch.saturation).label} &mdash; room to earn
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Real-Time Alerts */}
+      <div className="glass-card p-5 md:p-6">
+        <button 
+          onClick={() => setExpandedAlerts(!expandedAlerts)}
+          className="w-full flex items-center justify-between mb-4"
+        >
+          <div className="flex items-center gap-3">
+            <div className="w-9 h-9 rounded-lg bg-accent-crimson/15 flex items-center justify-center relative">
+              <AlertTriangle className="w-4 h-4 text-accent-crimson-light" />
+              <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-accent-crimson text-[9px] font-bold text-foreground flex items-center justify-center">
+                {alerts.length}
+              </span>
+            </div>
+            <h3 className="text-sm font-bold uppercase tracking-[0.15em] text-muted-foreground">
+              Real-Time Intel Alerts
+            </h3>
+          </div>
+          {expandedAlerts ? (
+            <ChevronUp className="w-4 h-4 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="w-4 h-4 text-muted-foreground" />
+          )}
+        </button>
+
+        {expandedAlerts && (
+          <div className="space-y-3">
+            {alerts.map((alert) => (
+              <div 
+                key={alert.id}
+                className={`p-4 rounded-lg border transition-colors ${
+                  alert.type === 'vip'
+                    ? 'bg-accent-gold/5 border-accent-gold/15 hover:border-accent-gold/30'
+                    : 'bg-accent-crimson/5 border-accent-crimson/15 hover:border-accent-crimson/30'
+                }`}
+              >
+                <div className="flex items-start justify-between gap-3 mb-1.5">
+                  <div className="flex items-center gap-2">
+                    {alert.type === 'vip' ? (
+                      <Crown className="w-3.5 h-3.5 text-accent-gold flex-shrink-0" />
+                    ) : (
+                      <AlertTriangle className="w-3.5 h-3.5 text-accent-crimson-light flex-shrink-0" />
+                    )}
+                    <span className={`text-xs font-bold ${
+                      alert.type === 'vip' ? 'text-accent-gold' : 'text-accent-crimson-light'
+                    }`}>
+                      {alert.title}
+                    </span>
+                  </div>
+                  <span className="text-[10px] text-muted-foreground/50 whitespace-nowrap">{alert.time}</span>
+                </div>
+                <p className={`text-xs leading-relaxed pl-5.5 ${discretionMode ? 'blur-sm select-none' : 'text-muted-foreground'}`}>
+                  {alert.message}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Alternative Venue Matrix */}
+      <div className="glass-card p-5 md:p-6">
+        <div className="flex items-center gap-3 mb-4">
+          <div className="w-9 h-9 rounded-lg bg-accent-gold/10 flex items-center justify-center">
+            <MapPin className="w-4 h-4 text-accent-gold" />
+          </div>
+          <h3 className="text-sm font-bold uppercase tracking-[0.15em] text-muted-foreground">Alternative Venue Matrix</h3>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          {alternatives.map((venue) => {
+            const satLabel = getSaturationLabel(venue.saturation);
+            return (
+              <div 
+                key={venue.id}
+                className="rounded-xl bg-surface border border-border hover:border-accent-gold/20 transition-all overflow-hidden group"
+              >
+                {/* Mini Image */}
+                <div className="relative h-24 w-full">
+                  <Image
+                    src={venue.image}
+                    alt={venue.name}
+                    fill
+                    className="object-cover opacity-60 group-hover:opacity-80 transition-opacity"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-surface via-surface/60 to-transparent"></div>
+                  {/* Score Badge */}
+                  <div className="absolute top-2 right-2 px-2 py-1 rounded-md bg-background/80 backdrop-blur-sm border border-border">
+                    <span className={`text-sm font-bold font-display ${getScoreColor(venue.assScore)}`}>
+                      {venue.assScore}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="p-3 space-y-2.5">
+                  <div>
+                    <h4 className="text-sm font-semibold text-foreground truncate">
+                      {discretionMode ? '••••••••' : venue.name}
+                    </h4>
+                    <p className="text-[10px] text-muted-foreground">{venue.area}</p>
+                  </div>
+
+                  {/* Mini A.S.S. bars */}
+                  <div className="space-y-1.5">
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] uppercase tracking-wide text-muted-foreground/60 w-8">AES</span>
+                      <div className="flex-1 h-1 rounded-full bg-surface-elevated overflow-hidden">
+                        <div className={`h-full rounded-full ${getScoreBarColor(venue.aesthetic)}`} style={{ width: `${venue.aesthetic}%` }}></div>
+                      </div>
+                      <span className="text-[9px] font-bold text-muted-foreground w-5 text-right">{venue.aesthetic}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] uppercase tracking-wide text-muted-foreground/60 w-8">SRG</span>
+                      <div className="flex-1 h-1 rounded-full bg-surface-elevated overflow-hidden">
+                        <div className={`h-full rounded-full ${getScoreBarColor(venue.surge)}`} style={{ width: `${venue.surge}%` }}></div>
+                      </div>
+                      <span className="text-[9px] font-bold text-muted-foreground w-5 text-right">{venue.surge}</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[9px] uppercase tracking-wide text-muted-foreground/60 w-8">SAT</span>
+                      <div className="flex-1 h-1 rounded-full bg-surface-elevated overflow-hidden">
+                        <div className="h-full rounded-full bg-emerald-500" style={{ width: `${venue.saturation}%` }}></div>
+                      </div>
+                      <span className={`text-[9px] font-bold ${satLabel.color} w-5 text-right`}>{venue.saturation}%</span>
+                    </div>
+                  </div>
+
+                  <div className="pt-1.5 border-t border-border/50">
+                    <p className={`text-xs font-semibold ${discretionMode ? 'blur-sm select-none' : 'text-foreground/80'}`}>
+                      {discretionMode ? '••••••' : venue.estEarnings}
+                    </p>
+                    <p className="text-[9px] text-muted-foreground/50 flex items-center gap-1">
+                      <Clock className="w-2.5 h-2.5" />
+                      Peak: {venue.peakWindow}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Action Execution */}
+      <div className="glass-card p-5 md:p-6">
+        {!isLocked ? (
+          <button
+            onClick={handleLockShift}
+            disabled={isLoading || isLocking}
+            className="w-full py-4 rounded-xl btn-gold neon-gold font-bold text-sm flex items-center justify-center gap-3 transition-all disabled:opacity-50"
+          >
+            {isLocking ? (
+              <>
+                <Loader2 className="w-4 h-4 animate-spin" />
+                Locking Deployment...
+              </>
+            ) : (
+              <>
+                <CheckCircle className="w-4 h-4" />
+                Accept Matching & Lock Shift
+              </>
+            )}
+          </button>
+        ) : (
+          <div className="w-full py-4 rounded-xl bg-emerald-500/10 border border-emerald-500/30 flex items-center justify-center gap-3">
+            <CheckCircle className="w-5 h-5 text-emerald-400" />
+            <div className="text-center">
+              <p className="text-sm font-bold text-emerald-400">Shift Locked Successfully</p>
+              <p className="text-[10px] text-muted-foreground">
+                {discretionMode ? '••••••••••' : topMatch.name} &mdash; {topMatch.peakWindow}
+              </p>
+            </div>
+          </div>
+        )}
+
+        <div className="flex items-center justify-center gap-4 mt-3 text-[10px] text-muted-foreground/40">
+          <span>Model: A.S.S. v3.2</span>
+          <span>&middot;</span>
+          <span>Updated: {new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+          <span>&middot;</span>
+          <span>Confidence: 94%</span>
+        </div>
       </div>
     </div>
   );
