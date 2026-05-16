@@ -393,7 +393,9 @@ function VenueDirectory() {
       coverCharge: '$20 Standard / Free before 9PM',
       tonightsSpecial: '$5 Domestics until Midnight',
       vibeTag: 'High-Energy',
-      image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&h=400&fit=crop'
+      image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&h=400&fit=crop',
+      surgeStatus: 'Peak' as const,
+      floorSaturation: 92,
     },
     {
       id: 2,
@@ -404,7 +406,9 @@ function VenueDirectory() {
       coverCharge: '$10 Flat / Free with VIP',
       tonightsSpecial: '2-for-1 Premium Cocktails',
       vibeTag: 'Lounge',
-      image: 'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=600&h=400&fit=crop'
+      image: 'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=600&h=400&fit=crop',
+      surgeStatus: 'Optimal' as const,
+      floorSaturation: 67,
     },
     {
       id: 3,
@@ -415,7 +419,9 @@ function VenueDirectory() {
       coverCharge: '$15 Standard / $25 VIP Express',
       tonightsSpecial: 'Live DJ + $8 Signature Shots',
       vibeTag: 'High-Energy',
-      image: 'https://images.unsplash.com/photo-1571204829887-3b8d69e4094d?w=600&h=400&fit=crop'
+      image: 'https://images.unsplash.com/photo-1571204829887-3b8d69e4094d?w=600&h=400&fit=crop',
+      surgeStatus: 'Low' as const,
+      floorSaturation: 23,
     },
   ];
 
@@ -531,7 +537,7 @@ function VenueDirectory() {
                 </div>
 
                 {/* Intel Grid */}
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                   <div className="space-y-1">
                     <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Cover Charge</p>
                     <p className="text-sm text-foreground font-medium">{venue.coverCharge}</p>
@@ -550,6 +556,35 @@ function VenueDirectory() {
                       )}
                       <span className="text-sm text-foreground font-medium">{venue.vibeTag}</span>
                     </div>
+                  </div>
+                </div>
+
+                {/* A.S.S. Live Metrics */}
+                <div className="flex flex-wrap gap-2 mb-5">
+                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold ${
+                    venue.surgeStatus === 'Peak'
+                      ? 'bg-accent-crimson/15 border-accent-crimson/30 text-accent-crimson-light'
+                      : venue.surgeStatus === 'Optimal'
+                        ? 'bg-accent-gold/10 border-accent-gold/25 text-accent-gold'
+                        : 'bg-emerald-500/10 border-emerald-500/25 text-emerald-400'
+                  }`}>
+                    <span className={`w-1.5 h-1.5 rounded-full ${
+                      venue.surgeStatus === 'Peak'
+                        ? 'bg-accent-crimson-light animate-pulse'
+                        : venue.surgeStatus === 'Optimal'
+                          ? 'bg-accent-gold'
+                          : 'bg-emerald-400'
+                    }`}></span>
+                    Surge: {venue.surgeStatus}
+                  </div>
+                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border text-xs font-bold ${
+                    venue.floorSaturation >= 85
+                      ? 'bg-accent-crimson/15 border-accent-crimson/30 text-accent-crimson-light'
+                      : venue.floorSaturation >= 55
+                        ? 'bg-accent-gold/10 border-accent-gold/25 text-accent-gold'
+                        : 'bg-surface-elevated border-border text-muted-foreground'
+                  }`}>
+                    Floor: {venue.floorSaturation}% Capacity
                   </div>
                 </div>
 

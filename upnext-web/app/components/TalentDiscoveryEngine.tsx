@@ -39,6 +39,8 @@ interface TalentProfile {
   scheduleBlock: string;
   availability: string;
   images: string[];
+  industryVouches: number;
+  reliabilityPercentile: number;
 }
 
 interface TalentDiscoveryProps {
@@ -266,6 +268,7 @@ function generateProfiles(): TalentProfile[] {
 
     const hairColor = archetypeHair[i % archetypeHair.length];
     const build = archetypeBuilds[i % archetypeBuilds.length];
+    const tierIndex = i % TIERS.length;
 
     // Build tags: archetype-specific + hair + build + venue-based
     const tags = [
@@ -289,7 +292,7 @@ function generateProfiles(): TalentProfile[] {
       bio: archetypeBios[i % archetypeBios.length],
       tags: [...new Set(tags)],
       rating: parseFloat((4.5 + (i % 6) * 0.1).toFixed(1)),
-      tier: TIERS[i % TIERS.length],
+      tier: TIERS[tierIndex],
       status: i % 3 === 0 ? 'scheduled' : 'live',
       venueAnchor: VENUES[i % VENUES.length],
       scheduleBlock: i % 3 === 0
@@ -298,7 +301,9 @@ function generateProfiles(): TalentProfile[] {
       availability: i % 4 === 0
         ? 'Booked for VIP until 1AM'
         : 'Available for Private Lounge Bookings',
-      images: getGalleryUrls(i, vibeStyle)
+      images: getGalleryUrls(i, vibeStyle),
+      industryVouches: 5 + ((i * 7 + 3) % 28),
+      reliabilityPercentile: tierIndex === 0 ? 99 : tierIndex === 1 ? 95 : tierIndex === 2 ? 88 : 78 + (i % 10),
     };
   });
 }
@@ -646,6 +651,18 @@ function ProfileCard({ profile, onClick }: { profile: TalentProfile; onClick: ()
             {profile.vibeStyle.split(' ')[0]}
           </span>
         </div>
+        {/* Industry Vouch Badge */}
+        <div className="mt-2 flex items-center gap-1.5 px-2 py-1 rounded-md bg-accent-gold/5 border border-accent-gold/15">
+          <CheckCircle className="w-3 h-3 text-accent-gold flex-shrink-0" />
+          <span className="text-[9px] font-semibold text-accent-gold truncate">
+            {profile.industryVouches} Vouches
+          </span>
+          {profile.reliabilityPercentile >= 95 && (
+            <span className="text-[8px] font-bold text-emerald-400 ml-auto flex-shrink-0">
+              Top {100 - profile.reliabilityPercentile}%
+            </span>
+          )}
+        </div>
       </div>
     </button>
   );
@@ -773,6 +790,24 @@ function ProfileDetailModal({
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <MapPin className="w-3.5 h-3.5 text-accent-gold" />
                 <span>Tonight&apos;s Anchor: <span className="text-foreground font-medium">{profile.venueAnchor}</span></span>
+              </div>
+              {/* Industry Trust Badge */}
+              <div className="flex items-center gap-3 mt-3">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-accent-gold/8 border border-accent-gold/20">
+                  <CheckCircle className="w-4 h-4 text-accent-gold" />
+                  <span className="text-xs font-bold text-accent-gold">{profile.industryVouches} Industry Vouches</span>
+                </div>
+                <div className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border ${
+                  profile.reliabilityPercentile >= 95
+                    ? 'bg-emerald-500/10 border-emerald-500/25'
+                    : 'bg-surface-elevated border-border'
+                }`}>
+                  <span className={`text-xs font-bold ${
+                    profile.reliabilityPercentile >= 95 ? 'text-emerald-400' : 'text-muted-foreground'
+                  }`}>
+                    Top {100 - profile.reliabilityPercentile}% Reliability
+                  </span>
+                </div>
               </div>
             </div>
 
