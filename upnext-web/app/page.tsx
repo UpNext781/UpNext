@@ -26,7 +26,10 @@ import {
   Utensils,
   CircleDot,
   Flame,
-  Sofa
+  Sofa,
+  Radio,
+  Crown,
+  Target
 } from 'lucide-react';
 
 type PortalMode = 'public' | 'operator';
@@ -314,6 +317,9 @@ function PublicPortal({ syncWithYantra, isLoading }: PublicPortalProps) {
         </div>
       </section>
 
+      {/* The Vibe Matcher - Interactive Quiz */}
+      <VibeMatcher syncWithYantra={syncWithYantra} />
+
       {/* Tonight's Lineup - Premium Horizontal Slider */}
       <section>
         <div className="flex items-center justify-between mb-6">
@@ -591,6 +597,355 @@ function VenueDirectory() {
             <p className="text-muted-foreground text-sm">No venues match your search criteria.</p>
           </div>
         )}
+      </div>
+    </section>
+  );
+}
+
+// ============================================
+// VIBE MATCHER COMPONENT
+// "The Elite Vibe Matcher" - Interactive quiz
+// ============================================
+
+interface VibeMatcherProps {
+  syncWithYantra: (action: string, payload: Record<string, unknown>) => Promise<{ success: boolean }>;
+}
+
+type QuizAnswer = 'A' | 'B' | 'C' | null;
+
+interface QuizState {
+  step: number;
+  answers: [QuizAnswer, QuizAnswer, QuizAnswer];
+  isCalibrating: boolean;
+  showResults: boolean;
+}
+
+function VibeMatcher({ syncWithYantra }: VibeMatcherProps) {
+  const [quizState, setQuizState] = useState<QuizState>({
+    step: 0, // 0 = entryway, 1-3 = questions, 4 = results
+    answers: [null, null, null],
+    isCalibrating: false,
+    showResults: false
+  });
+
+  const questions = [
+    {
+      id: 1,
+      title: 'The Energy Baseline',
+      question: 'What is the primary operational anchor for your night?',
+      choices: [
+        { id: 'A', text: 'High-octane, main-stage theater energy with a high-volume crowd.' },
+        { id: 'B', text: 'Dimly lit, exclusive VIP lounge vibes with deep bass and high-stakes conversations.' },
+        { id: 'C', text: 'Bespoke, private room attention completely tailored away from the noise.' }
+      ]
+    },
+    {
+      id: 2,
+      title: 'The Social Blueprint',
+      question: 'How do you prefer to interact with the floor?',
+      choices: [
+        { id: 'A', text: 'Direct engagement—center of the action, hosting the room.' },
+        { id: 'B', text: 'Quiet observation—vantage point seating, reading the patterns before moving.' },
+        { id: 'C', text: 'Fluid transition—moving effortlessly between the bar, the stage, and the suites.' }
+      ]
+    },
+    {
+      id: 3,
+      title: 'The Velocity',
+      question: 'What defines a successful closing play for you?',
+      choices: [
+        { id: 'A', text: 'Pushing the line until dawn at an exclusive after-hours spot.' },
+        { id: 'B', text: 'A clean, high-end exit after locking down a premium bottle service reservation.' },
+        { id: 'C', text: 'Completely unpredictable—letting the night dictate the target.' }
+      ]
+    }
+  ];
+
+  // Match results based on answers
+  const matchedTalent = [
+    { id: 1, alias: 'Diamond Elite', specialty: 'VIP Hosting', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face' },
+    { id: 5, alias: 'Platinum Floor', specialty: 'Main Stage', image: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=400&fit=crop&crop=face' }
+  ];
+
+  const matchedVenue = {
+    name: "Christie's Cabaret",
+    area: 'Tempe',
+    vibeTag: 'High-Energy',
+    image: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&h=400&fit=crop'
+  };
+
+  const getSignature = (): string => {
+    const [a1, a2, a3] = quizState.answers;
+    if (a1 === 'B' && a2 === 'B') return 'Elite Lounge Connoisseur';
+    if (a1 === 'A' && a3 === 'A') return 'High-Velocity Nighthawk';
+    if (a1 === 'C' || a2 === 'C') return 'Private Suite Architect';
+    if (a3 === 'C') return 'Adaptive Night Navigator';
+    return 'VIP Experience Curator';
+  };
+
+  const handleStartQuiz = () => {
+    setQuizState(prev => ({ ...prev, step: 1 }));
+  };
+
+  const handleSelectAnswer = async (answer: QuizAnswer) => {
+    const newAnswers = [...quizState.answers] as [QuizAnswer, QuizAnswer, QuizAnswer];
+    newAnswers[quizState.step - 1] = answer;
+    
+    if (quizState.step === 3) {
+      // Final question - trigger calibration
+      setQuizState(prev => ({ ...prev, answers: newAnswers, isCalibrating: true }));
+      
+      // Sync to backend
+      await syncWithYantra('vibe_matcher_complete', { 
+        answers: newAnswers,
+        signature: getSignature()
+      });
+      
+      // Show calibration animation
+      setTimeout(() => {
+        setQuizState(prev => ({ ...prev, isCalibrating: false, showResults: true, step: 4 }));
+      }, 2000);
+    } else {
+      // Move to next question
+      setQuizState(prev => ({ ...prev, answers: newAnswers, step: prev.step + 1 }));
+    }
+  };
+
+  const handleReset = () => {
+    setQuizState({
+      step: 0,
+      answers: [null, null, null],
+      isCalibrating: false,
+      showResults: false
+    });
+  };
+
+  // Entryway State
+  if (quizState.step === 0) {
+    return (
+      <section className="glass-card-glow p-6 md:p-8 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-accent-crimson/10 via-transparent to-accent-gold/10"></div>
+        <div className="relative">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-gold/20 to-accent-crimson/20 flex items-center justify-center">
+              <Radio className="w-6 h-6 text-accent-gold" />
+            </div>
+            <div>
+              <h2 className="text-xl font-display font-bold italic text-foreground">
+                Find Your Frequency <span className="text-accent-gold">//</span> The Elite Vibe Matcher
+              </h2>
+              <p className="text-sm text-muted-foreground">Calibrate your evening experience</p>
+            </div>
+          </div>
+
+          <p className="text-muted-foreground mb-8 max-w-2xl leading-relaxed">
+            Answer 3 quick micro-scenarios to calibrate your evening layout and instantly match with tonight&apos;s 
+            premium talent and venue rotations.
+          </p>
+
+          <button
+            onClick={handleStartQuiz}
+            className="btn-gold px-8 py-4 rounded-lg text-sm flex items-center gap-3 neon-gold group"
+          >
+            <Target className="w-4 h-4" />
+            Begin Calibration
+            <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
+          </button>
+        </div>
+      </section>
+    );
+  }
+
+  // Calibrating State
+  if (quizState.isCalibrating) {
+    return (
+      <section className="glass-card-glow p-8 md:p-12 relative overflow-hidden">
+        <div className="absolute inset-0">
+          <div className="absolute inset-0 bg-gradient-to-r from-accent-gold/5 via-accent-crimson/10 to-accent-gold/5 animate-pulse"></div>
+        </div>
+        <div className="relative flex flex-col items-center justify-center text-center py-12">
+          <div className="relative mb-6">
+            <div className="w-20 h-20 rounded-full border-2 border-accent-gold/30 flex items-center justify-center">
+              <div className="w-16 h-16 rounded-full border-2 border-accent-crimson/50 border-t-accent-gold animate-spin flex items-center justify-center">
+                <Radio className="w-6 h-6 text-accent-gold" />
+              </div>
+            </div>
+          </div>
+          <p className="text-sm font-bold uppercase tracking-[0.25em] text-accent-gold mb-2">
+            Calibrating Vibe Signatures...
+          </p>
+          <p className="text-xs text-muted-foreground">
+            Matching your preferences with tonight&apos;s premium inventory
+          </p>
+        </div>
+      </section>
+    );
+  }
+
+  // Results State
+  if (quizState.showResults) {
+    return (
+      <section className="glass-card-glow p-6 md:p-8 relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-accent-gold/10 via-transparent to-accent-crimson/10"></div>
+        <div className="relative">
+          {/* Results Header */}
+          <div className="text-center mb-8">
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent-gold/15 text-accent-gold text-xs font-bold uppercase tracking-wider mb-4">
+              <Crown className="w-3.5 h-3.5" />
+              Calibration Complete
+            </div>
+            <h2 className="text-2xl md:text-3xl font-display font-bold italic text-foreground mb-2">
+              Your Tonight Blueprint
+            </h2>
+            <p className="text-lg text-accent-gold font-semibold">
+              Signature: {getSignature()}
+            </p>
+          </div>
+
+          {/* Matched Talent */}
+          <div className="mb-8">
+            <h3 className="text-sm font-bold uppercase tracking-[0.15em] text-muted-foreground mb-4 flex items-center gap-2">
+              <Zap className="w-4 h-4 text-accent-crimson-light" />
+              Your Matched Talent
+            </h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {matchedTalent.map((talent) => (
+                <div 
+                  key={talent.id}
+                  className="glass-card p-4 flex items-center gap-4 hover:border-accent-gold/30 transition-all group"
+                >
+                  <div className="w-16 h-16 rounded-xl overflow-hidden ring-2 ring-accent-gold/40">
+                    <Image
+                      src={talent.image}
+                      alt={talent.alias}
+                      width={64}
+                      height={64}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="flex-1">
+                    <h4 className="text-base font-semibold text-foreground">{talent.alias}</h4>
+                    <p className="text-xs text-muted-foreground">{talent.specialty}</p>
+                  </div>
+                  <button className="text-xs font-semibold text-accent-gold hover:text-accent-gold-light transition-colors">
+                    Request
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Matched Venue */}
+          <div className="mb-8">
+            <h3 className="text-sm font-bold uppercase tracking-[0.15em] text-muted-foreground mb-4 flex items-center gap-2">
+              <MapPin className="w-4 h-4 text-accent-gold" />
+              Your Recommended Destination
+            </h3>
+            <div className="glass-card overflow-hidden hover:border-accent-gold/30 transition-all group">
+              <div className="flex flex-col sm:flex-row">
+                <div className="relative w-full sm:w-48 h-32 sm:h-auto flex-shrink-0">
+                  <Image
+                    src={matchedVenue.image}
+                    alt={matchedVenue.name}
+                    fill
+                    className="object-cover"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t sm:bg-gradient-to-r from-background/80 to-transparent"></div>
+                </div>
+                <div className="flex-1 p-5 flex items-center justify-between gap-4">
+                  <div>
+                    <h4 className="text-lg font-display font-bold italic text-foreground mb-1">
+                      {matchedVenue.name}
+                    </h4>
+                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                      <span>{matchedVenue.area}</span>
+                      <span className="flex items-center gap-1 text-accent-crimson-light">
+                        <Flame className="w-3.5 h-3.5" />
+                        {matchedVenue.vibeTag}
+                      </span>
+                    </div>
+                  </div>
+                  <button className="btn-gold px-4 py-2.5 rounded-lg text-xs flex items-center gap-2 neon-gold">
+                    Book VIP
+                    <ArrowRight className="w-3.5 h-3.5" />
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Reset Button */}
+          <div className="text-center">
+            <button
+              onClick={handleReset}
+              className="text-sm text-muted-foreground hover:text-foreground transition-colors underline underline-offset-4"
+            >
+              Recalibrate Preferences
+            </button>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
+  // Quiz Questions State
+  const currentQuestion = questions[quizState.step - 1];
+
+  return (
+    <section className="glass-card p-6 md:p-8 relative overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-accent-crimson/5 via-transparent to-accent-gold/5"></div>
+      <div className="relative">
+        {/* Progress Indicator */}
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-2">
+            <Radio className="w-5 h-5 text-accent-gold" />
+            <span className="text-sm font-semibold text-foreground">Vibe Calibration</span>
+          </div>
+          <div className="flex items-center gap-2">
+            {[1, 2, 3].map((step) => (
+              <div
+                key={step}
+                className={`w-8 h-1.5 rounded-full transition-colors ${
+                  step < quizState.step
+                    ? 'bg-accent-gold'
+                    : step === quizState.step
+                    ? 'bg-accent-crimson'
+                    : 'bg-white/10'
+                }`}
+              />
+            ))}
+          </div>
+        </div>
+
+        {/* Question */}
+        <div className="mb-8">
+          <p className="text-xs font-bold uppercase tracking-[0.2em] text-accent-gold mb-3">
+            {currentQuestion.title}
+          </p>
+          <h3 className="text-xl md:text-2xl font-display font-semibold text-foreground leading-snug">
+            {currentQuestion.question}
+          </h3>
+        </div>
+
+        {/* Choices */}
+        <div className="space-y-3">
+          {currentQuestion.choices.map((choice) => (
+            <button
+              key={choice.id}
+              onClick={() => handleSelectAnswer(choice.id as QuizAnswer)}
+              className="w-full text-left p-5 rounded-xl bg-surface border border-border hover:border-accent-gold/40 hover:bg-surface-elevated transition-all group"
+            >
+              <div className="flex items-start gap-4">
+                <div className="w-8 h-8 rounded-lg bg-accent-gold/10 flex items-center justify-center flex-shrink-0 group-hover:bg-accent-gold/20 transition-colors">
+                  <span className="text-sm font-bold text-accent-gold">{choice.id}</span>
+                </div>
+                <p className="text-sm text-muted-foreground group-hover:text-foreground transition-colors leading-relaxed pt-1">
+                  {choice.text}
+                </p>
+              </div>
+            </button>
+          ))}
+        </div>
       </div>
     </section>
   );
