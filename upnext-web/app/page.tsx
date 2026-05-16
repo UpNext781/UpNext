@@ -3,6 +3,8 @@
 import React, { useState, useCallback } from 'react';
 import Image from 'next/image';
 import TalentDiscoveryEngine from './components/TalentDiscoveryEngine';
+import LucasConcierge from './components/LucasConcierge';
+import RoxyCoPilot from './components/RoxyCoPilot';
 import { 
   Sparkles, 
   Briefcase, 
@@ -325,6 +327,9 @@ function PublicPortal({ syncWithYantra, isLoading }: PublicPortalProps) {
 
       {/* The City Grid: Venue Directory */}
       <VenueDirectory />
+
+      {/* Lucas AI Concierge - Floating Chat Widget */}
+      <LucasConcierge syncWithYantra={syncWithYantra} />
     </div>
   );
 }
@@ -979,6 +984,9 @@ function OperatorApp({ syncWithYantra, isLoading }: OperatorAppProps) {
 
       {/* The Market Pulse - Predictive Intelligence Panel */}
       <MarketPulse syncWithYantra={syncWithYantra} discretionMode={discretionMode} isLoading={isLoading} />
+
+      {/* Roxy AI - Strategic Shift Co-Pilot */}
+      <RoxyCoPilot syncWithYantra={syncWithYantra} discretionMode={discretionMode} />
 
       {/* Shift Ledger - Mobile-optimized roster */}
       <div className="glass-card p-5 md:p-6">
