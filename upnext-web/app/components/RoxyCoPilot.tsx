@@ -17,6 +17,10 @@ import {
   Crosshair,
   ShieldAlert,
   Radio,
+  PenLine,
+  Copy,
+  Check,
+  ChevronRight,
 } from 'lucide-react';
 
 interface RoxyCoPilotProps {
@@ -157,6 +161,86 @@ const LIVE_FEED_ITEMS = [
   },
 ];
 
+// ============================================
+// CLIENT COMMS COPILOT (Ghostwriter)
+// ============================================
+const TARGET_PROFILES = [
+  { id: 'whale', label: 'The Whale', desc: 'High roller. $2K+ avg spend.' },
+  { id: 'regular', label: 'The Regular', desc: 'Loyal return visitor.' },
+  { id: 'ghost', label: 'The Ghost', desc: 'Went silent after 3+ visits.' },
+] as const;
+
+const OBJECTIVES = [
+  { id: 'pull', label: 'Pull to Venue', desc: 'Get them in the door tonight.' },
+  { id: 'upsell', label: 'Upsell Bottle Service', desc: 'Escalate spend tier.' },
+  { id: 'retain', label: 'Flirt & Retain', desc: 'Keep the hook warm.' },
+] as const;
+
+type ScriptTone = 'direct' | 'sultry' | 'engineer';
+
+interface GeneratedScript {
+  tone: ScriptTone;
+  label: string;
+  sublabel: string;
+  text: string;
+  accentColor: string;
+  dotColor: string;
+}
+
+const SCRIPT_MATRIX: Record<string, Record<string, GeneratedScript[]>> = {
+  'whale': {
+    'pull': [
+      { tone: 'direct', label: 'Option A', sublabel: 'Direct & Urgent', text: "Floor is packed tonight. I have a booth in the back with your name on it if you get here by 11.", accentColor: 'text-accent-crimson-light', dotColor: 'bg-accent-crimson-light' },
+      { tone: 'sultry', label: 'Option B', sublabel: 'Sultry & Exclusive', text: "Wearing that black dress you like. Let me know when you're pulling up.", accentColor: 'text-accent-gold', dotColor: 'bg-accent-gold' },
+      { tone: 'engineer', label: 'Option C', sublabel: 'The Social Engineer', text: "Just had a table open up in my section. Thought of you first before I let the host give it away.", accentColor: 'text-emerald-400', dotColor: 'bg-emerald-400' },
+    ],
+    'upsell': [
+      { tone: 'direct', label: 'Option A', sublabel: 'Direct & Urgent', text: "We just got that Clase Azul you were asking about. I set a bottle aside. It won't last the night.", accentColor: 'text-accent-crimson-light', dotColor: 'bg-accent-crimson-light' },
+      { tone: 'sultry', label: 'Option B', sublabel: 'Sultry & Exclusive', text: "I'm in the skybox tonight. Come keep me company and I'll make sure you're taken care of.", accentColor: 'text-accent-gold', dotColor: 'bg-accent-gold' },
+      { tone: 'engineer', label: 'Option C', sublabel: 'The Social Engineer', text: "Management's running a private tasting tonight, invite-only. I told them to hold your spot.", accentColor: 'text-emerald-400', dotColor: 'bg-emerald-400' },
+    ],
+    'retain': [
+      { tone: 'direct', label: 'Option A', sublabel: 'Direct & Urgent', text: "Haven't seen you in a minute. The floor's not the same. Swing by this week?", accentColor: 'text-accent-crimson-light', dotColor: 'bg-accent-crimson-light' },
+      { tone: 'sultry', label: 'Option B', sublabel: 'Sultry & Exclusive', text: "Was thinking about that conversation we had last time. You owe me a rematch.", accentColor: 'text-accent-gold', dotColor: 'bg-accent-gold' },
+      { tone: 'engineer', label: 'Option C', sublabel: 'The Social Engineer', text: "Just got put on a new rotation schedule. Wanted to make sure you know my nights before anyone else.", accentColor: 'text-emerald-400', dotColor: 'bg-emerald-400' },
+    ],
+  },
+  'regular': {
+    'pull': [
+      { tone: 'direct', label: 'Option A', sublabel: 'Direct & Urgent', text: "Your usual spot's open tonight. Kitchen just dropped new apps. Come through.", accentColor: 'text-accent-crimson-light', dotColor: 'bg-accent-crimson-light' },
+      { tone: 'sultry', label: 'Option B', sublabel: 'Sultry & Exclusive', text: "It's been too quiet without you here. I saved your seat.", accentColor: 'text-accent-gold', dotColor: 'bg-accent-gold' },
+      { tone: 'engineer', label: 'Option C', sublabel: 'The Social Engineer', text: "They're running a regulars-only deal tonight. Didn't want you to miss it.", accentColor: 'text-emerald-400', dotColor: 'bg-emerald-400' },
+    ],
+    'upsell': [
+      { tone: 'direct', label: 'Option A', sublabel: 'Direct & Urgent', text: "We just opened the VIP mezzanine tonight. I can get you in before it fills up.", accentColor: 'text-accent-crimson-light', dotColor: 'bg-accent-crimson-light' },
+      { tone: 'sultry', label: 'Option B', sublabel: 'Sultry & Exclusive', text: "I want to show you the new lounge upstairs. It's invite-only and I saved you a spot.", accentColor: 'text-accent-gold', dotColor: 'bg-accent-gold' },
+      { tone: 'engineer', label: 'Option C', sublabel: 'The Social Engineer', text: "The manager just comped a round for the VIP section. I told them to add you to the list.", accentColor: 'text-emerald-400', dotColor: 'bg-emerald-400' },
+    ],
+    'retain': [
+      { tone: 'direct', label: 'Option A', sublabel: 'Direct & Urgent', text: "Miss seeing your face. Free drink on me next time you come in.", accentColor: 'text-accent-crimson-light', dotColor: 'bg-accent-crimson-light' },
+      { tone: 'sultry', label: 'Option B', sublabel: 'Sultry & Exclusive', text: "I keep looking at the door expecting to see you walk in. Don't be a stranger.", accentColor: 'text-accent-gold', dotColor: 'bg-accent-gold' },
+      { tone: 'engineer', label: 'Option C', sublabel: 'The Social Engineer', text: "Someone asked about your table the other night. I told them it was reserved. Just in case.", accentColor: 'text-emerald-400', dotColor: 'bg-emerald-400' },
+    ],
+  },
+  'ghost': {
+    'pull': [
+      { tone: 'direct', label: 'Option A', sublabel: 'Direct & Urgent', text: "Long time. Tonight's a big night and I'd love to see you here. No pressure, just good energy.", accentColor: 'text-accent-crimson-light', dotColor: 'bg-accent-crimson-light' },
+      { tone: 'sultry', label: 'Option B', sublabel: 'Sultry & Exclusive', text: "You crossed my mind today. Come find me tonight? I'll make it worth it.", accentColor: 'text-accent-gold', dotColor: 'bg-accent-gold' },
+      { tone: 'engineer', label: 'Option C', sublabel: 'The Social Engineer', text: "We're doing something different tonight. Thought it might pull you out of hiding.", accentColor: 'text-emerald-400', dotColor: 'bg-emerald-400' },
+    ],
+    'upsell': [
+      { tone: 'direct', label: 'Option A', sublabel: 'Direct & Urgent', text: "We just redesigned the VIP section. Honestly thought of you. Come see it.", accentColor: 'text-accent-crimson-light', dotColor: 'bg-accent-crimson-light' },
+      { tone: 'sultry', label: 'Option B', sublabel: 'Sultry & Exclusive', text: "I got moved to the premium lounge. It's a whole new vibe. You should come experience it.", accentColor: 'text-accent-gold', dotColor: 'bg-accent-gold' },
+      { tone: 'engineer', label: 'Option C', sublabel: 'The Social Engineer', text: "There's a private event this Friday and I have one plus-one left. You in?", accentColor: 'text-emerald-400', dotColor: 'bg-emerald-400' },
+    ],
+    'retain': [
+      { tone: 'direct', label: 'Option A', sublabel: 'Direct & Urgent', text: "Just checking in. No agenda. Hope you're good.", accentColor: 'text-accent-crimson-light', dotColor: 'bg-accent-crimson-light' },
+      { tone: 'sultry', label: 'Option B', sublabel: 'Sultry & Exclusive', text: "You've been quiet. I noticed. That's all.", accentColor: 'text-accent-gold', dotColor: 'bg-accent-gold' },
+      { tone: 'engineer', label: 'Option C', sublabel: 'The Social Engineer', text: "Funny, your name came up when someone asked who the best regulars were. Thought you should know.", accentColor: 'text-emerald-400', dotColor: 'bg-emerald-400' },
+    ],
+  },
+};
+
 export default function RoxyCoPilot({ syncWithYantra, discretionMode, decoyActive, onDecoyToggle }: RoxyCoPilotProps) {
   const [messages, setMessages] = useState<RoxyMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
@@ -166,6 +250,13 @@ export default function RoxyCoPilot({ syncWithYantra, discretionMode, decoyActiv
   const [alertsExpanded, setAlertsExpanded] = useState(true);
   const [radarPulseCount, setRadarPulseCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Ghostwriter state
+  const [gwTarget, setGwTarget] = useState('');
+  const [gwObjective, setGwObjective] = useState('');
+  const [gwScripts, setGwScripts] = useState<GeneratedScript[]>([]);
+  const [gwGenerating, setGwGenerating] = useState(false);
+  const [gwCopied, setGwCopied] = useState<string | null>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -223,6 +314,36 @@ export default function RoxyCoPilot({ syncWithYantra, discretionMode, decoyActiv
     e.preventDefault();
     if (!inputValue.trim()) return;
     sendCommand(inputValue.trim());
+  };
+
+  const handleGenerateHooks = async () => {
+    if (!gwTarget || !gwObjective) return;
+    setGwGenerating(true);
+    setGwScripts([]);
+
+    await syncWithYantra('ghostwriter_generate', {
+      target: gwTarget,
+      objective: gwObjective,
+      timestamp: new Date().toISOString(),
+    });
+
+    await new Promise((r) => setTimeout(r, 1800));
+
+    const scripts = SCRIPT_MATRIX[gwTarget]?.[gwObjective] || SCRIPT_MATRIX['whale']['pull'];
+    setGwScripts(scripts);
+    setGwGenerating(false);
+  };
+
+  const handleCopyScript = async (text: string, tone: string) => {
+    await navigator.clipboard.writeText(text);
+    setGwCopied(tone);
+    await syncWithYantra('ghostwriter_copy', {
+      target: gwTarget,
+      objective: gwObjective,
+      tone,
+      timestamp: new Date().toISOString(),
+    });
+    setTimeout(() => setGwCopied(null), 2000);
   };
 
   return (
@@ -376,6 +497,128 @@ export default function RoxyCoPilot({ syncWithYantra, discretionMode, decoyActiv
             </span>
           </div>
         </div>
+      </div>
+
+      {/* ============================================ */}
+      {/* CLIENT COMMS COPILOT (Ghostwriter)           */}
+      {/* ============================================ */}
+      <div className="relative space-y-4">
+        <div className="flex items-center gap-2">
+          <PenLine className="w-3.5 h-3.5 text-accent-crimson-light" />
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
+            Roxy <span className="text-accent-crimson-light">//</span> Ghostwriter
+          </p>
+        </div>
+
+        <div className="rounded-xl bg-surface/60 border border-accent-crimson/10 p-4 space-y-4">
+          {/* Target Profile Dropdown */}
+          <div className="space-y-1.5">
+            <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
+              Target Profile
+            </label>
+            <div className="relative">
+              <select
+                value={gwTarget}
+                onChange={(e) => { setGwTarget(e.target.value); setGwScripts([]); }}
+                className="w-full appearance-none bg-surface border border-border rounded-lg px-3.5 py-2.5 pr-8 text-xs text-foreground focus:outline-none focus:border-accent-crimson/40 transition-colors cursor-pointer"
+              >
+                <option value="" className="bg-surface text-muted-foreground">Select target type...</option>
+                {TARGET_PROFILES.map(t => (
+                  <option key={t.id} value={t.id} className="bg-surface">{t.label} -- {t.desc}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/40 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Objective Dropdown */}
+          <div className="space-y-1.5">
+            <label className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground/60">
+              Objective
+            </label>
+            <div className="relative">
+              <select
+                value={gwObjective}
+                onChange={(e) => { setGwObjective(e.target.value); setGwScripts([]); }}
+                className="w-full appearance-none bg-surface border border-border rounded-lg px-3.5 py-2.5 pr-8 text-xs text-foreground focus:outline-none focus:border-accent-crimson/40 transition-colors cursor-pointer"
+              >
+                <option value="" className="bg-surface text-muted-foreground">Select objective...</option>
+                {OBJECTIVES.map(o => (
+                  <option key={o.id} value={o.id} className="bg-surface">{o.label} -- {o.desc}</option>
+                ))}
+              </select>
+              <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-muted-foreground/40 pointer-events-none" />
+            </div>
+          </div>
+
+          {/* Generate Button */}
+          <button
+            onClick={handleGenerateHooks}
+            disabled={!gwTarget || !gwObjective || gwGenerating}
+            className="w-full flex items-center justify-center gap-2.5 px-4 py-3 rounded-xl font-bold text-xs uppercase tracking-[0.15em] transition-all duration-300 disabled:opacity-30 disabled:cursor-not-allowed bg-accent-crimson/15 border border-accent-crimson/25 text-accent-crimson-light hover:bg-accent-crimson/25 hover:border-accent-crimson/40 hover:shadow-[0_0_25px_rgba(165,42,42,0.12)]"
+          >
+            {gwGenerating ? (
+              <>
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                Roxy is writing...
+              </>
+            ) : (
+              <>
+                <Zap className="w-3.5 h-3.5" />
+                Generate Hooks
+                <ChevronRight className="w-3.5 h-3.5" />
+              </>
+            )}
+          </button>
+        </div>
+
+        {/* Output Matrix: Generated Scripts */}
+        {gwScripts.length > 0 && (
+          <div className="space-y-2.5">
+            <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-muted-foreground/50 px-1">
+              Generated Scripts &mdash; {TARGET_PROFILES.find(t => t.id === gwTarget)?.label} / {OBJECTIVES.find(o => o.id === gwObjective)?.label}
+            </p>
+            {gwScripts.map((script) => (
+              <div
+                key={script.tone}
+                className="rounded-xl bg-surface border border-border p-4 space-y-2.5 hover:border-accent-gold/20 transition-colors group"
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className={`w-1.5 h-1.5 rounded-full ${script.dotColor}`} />
+                    <span className={`text-[9px] font-bold uppercase tracking-[0.2em] ${script.accentColor}`}>
+                      {script.label}
+                    </span>
+                    <span className="text-[9px] text-muted-foreground/40">
+                      {script.sublabel}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => handleCopyScript(script.text, script.tone)}
+                    className="flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-surface-elevated border border-border text-muted-foreground hover:text-accent-gold hover:border-accent-gold/30 transition-all opacity-60 group-hover:opacity-100"
+                  >
+                    {gwCopied === script.tone ? (
+                      <>
+                        <Check className="w-3 h-3 text-emerald-400" />
+                        <span className="text-[9px] font-semibold text-emerald-400">Copied</span>
+                      </>
+                    ) : (
+                      <>
+                        <Copy className="w-3 h-3" />
+                        <span className="text-[9px] font-semibold">Copy</span>
+                      </>
+                    )}
+                  </button>
+                </div>
+                <p className={`text-sm leading-relaxed ${
+                  discretionMode ? 'blur-sm select-none' : 'text-foreground/85'
+                }`}>
+                  &ldquo;{script.text}&rdquo;
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* ============================================ */}
