@@ -1,19 +1,17 @@
 'use client';
 
 import React, { useState, useCallback } from 'react';
+import Image from 'next/image';
 import { 
   Zap, 
   Building2, 
   Clock, 
   MapPin, 
-  Calendar as CalendarIcon,
   TrendingUp,
   DollarSign,
   Bell,
   Check,
   X,
-  Users,
-  ChevronRight,
   Star,
   Send,
   Loader2
@@ -56,11 +54,9 @@ export default function UpNextWorkspace() {
   const syncWithYantra = useCallback(async (action: string, payload: Record<string, unknown>) => {
     setIsLoading(true);
     try {
-      // Simulate async POST request
-      console.log('[v0] Syncing with Yantra Core:', { action, payload });
       await new Promise(resolve => setTimeout(resolve, 1200));
       
-      // In production, this would be:
+      // In production:
       // const response = await fetch(YANTRA_API, {
       //   method: 'POST',
       //   headers: {
@@ -70,10 +66,8 @@ export default function UpNextWorkspace() {
       //   body: JSON.stringify({ action, payload })
       // });
       
-      console.log('[v0] Yantra sync complete');
       return { success: true };
     } catch (error) {
-      console.error('[v0] Yantra sync failed:', error);
       return { success: false };
     } finally {
       setIsLoading(false);
@@ -115,11 +109,11 @@ export default function UpNextWorkspace() {
     <div className="min-h-screen bg-background text-foreground">
       {/* Loading Overlay */}
       {isLoading && (
-        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center">
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center">
           <div className="glass-card-glow p-8 flex flex-col items-center gap-4">
-            <Loader2 className="w-8 h-8 text-accent-emerald animate-spin" />
-            <p className="text-sm text-muted-foreground font-medium tracking-wide">
-              SYNCING WITH YANTRA CORE...
+            <Loader2 className="w-8 h-8 text-accent-gold animate-spin" />
+            <p className="text-sm text-muted-foreground font-medium tracking-wide uppercase">
+              Syncing with Yantra Core...
             </p>
           </div>
         </div>
@@ -128,14 +122,14 @@ export default function UpNextWorkspace() {
       {/* Shift Alert Notification */}
       {notification && viewMode === 'specialist' && (
         <div className="fixed top-0 left-0 right-0 z-40 p-4 slide-down">
-          <div className="max-w-2xl mx-auto glass-card neon-pink border-accent-pink/30 p-4 flex items-center justify-between gap-4">
+          <div className="max-w-2xl mx-auto glass-card neon-crimson border-accent-crimson/40 p-4 flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-accent-pink/20 flex items-center justify-center">
-                <Bell className="w-5 h-5 text-accent-pink" />
+              <div className="w-10 h-10 rounded-xl bg-accent-crimson/20 flex items-center justify-center">
+                <Bell className="w-5 h-5 text-accent-crimson-light" />
               </div>
               <div>
-                <p className="text-sm font-semibold text-white">
-                  <span className="text-accent-pink">{notification.venueName}</span> {notification.message}
+                <p className="text-sm font-semibold text-foreground">
+                  <span className="text-accent-crimson-light">{notification.venueName}</span> {notification.message}
                 </p>
               </div>
             </div>
@@ -148,7 +142,7 @@ export default function UpNextWorkspace() {
               </button>
               <button
                 onClick={handleAcceptShift}
-                className="px-4 py-2 rounded-lg bg-accent-pink text-white font-semibold text-sm hover:bg-accent-pink/80 transition-colors neon-pink"
+                className="px-4 py-2 rounded-lg btn-crimson text-sm"
               >
                 Accept Shift
               </button>
@@ -158,15 +152,24 @@ export default function UpNextWorkspace() {
       )}
 
       <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
-        {/* Entry Gateway Header */}
-        <header className="text-center py-8 md:py-12">
-          <h1 className="text-3xl md:text-5xl font-black tracking-tighter text-white mb-2">
-            UPNEXT <span className="text-muted-foreground">//</span>{' '}
-            <span className="italic text-accent-emerald text-glow-emerald">Complete Operational Control</span>
-          </h1>
-          <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto mt-4">
-            Premium digital infrastructure for the nightlife and hospitality sector
-          </p>
+        {/* Entry Gateway Header with Brand Logo */}
+        <header className="py-6 md:py-10">
+          <div className="flex flex-col items-center gap-6">
+            {/* Brand Logo */}
+            <div className="relative w-full max-w-md mx-auto">
+              <Image
+                src="/images/upnext-logo.jpg"
+                alt="UpNext - Phoenix's Premier Dancers"
+                width={600}
+                height={200}
+                className="w-full h-auto rounded-lg"
+                priority
+              />
+            </div>
+            <p className="text-muted-foreground text-sm md:text-base max-w-xl mx-auto text-center">
+              Premium digital infrastructure for the nightlife and hospitality sector
+            </p>
+          </div>
         </header>
 
         {/* Role Selector Toggle */}
@@ -175,10 +178,10 @@ export default function UpNextWorkspace() {
             <button
               onClick={() => handleViewChange('specialist')}
               disabled={isLoading}
-              className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center gap-2 ${
+              className={`px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-300 flex items-center gap-2 ${
                 viewMode === 'specialist'
-                  ? 'bg-accent-emerald text-background neon-emerald'
-                  : 'text-muted-foreground hover:text-white hover:bg-white/5'
+                  ? 'btn-gold neon-gold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
               }`}
             >
               <Zap className="w-4 h-4" />
@@ -187,10 +190,10 @@ export default function UpNextWorkspace() {
             <button
               onClick={() => handleViewChange('venue')}
               disabled={isLoading}
-              className={`px-6 py-3 rounded-xl font-semibold text-sm transition-all duration-300 flex items-center gap-2 ${
+              className={`px-6 py-3 rounded-lg font-semibold text-sm transition-all duration-300 flex items-center gap-2 ${
                 viewMode === 'venue'
-                  ? 'bg-accent-emerald text-background neon-emerald'
-                  : 'text-muted-foreground hover:text-white hover:bg-white/5'
+                  ? 'btn-gold neon-gold'
+                  : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
               }`}
             >
               <Building2 className="w-4 h-4" />
@@ -244,17 +247,19 @@ function SpecialistDashboard({ availability, onToggleAvailability, isLoading }: 
           <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">Next Up</h2>
           <div className="flex items-center gap-2">
             <span className="relative flex h-3 w-3">
-              <span className="beacon-pulse absolute inline-flex h-full w-full rounded-full bg-accent-emerald opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-3 w-3 bg-accent-emerald"></span>
+              <span className="beacon-pulse absolute inline-flex h-full w-full rounded-full bg-accent-gold opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-3 w-3 bg-accent-gold"></span>
             </span>
-            <span className="text-xs font-semibold text-accent-emerald">On-Site / Active</span>
+            <span className="text-xs font-semibold text-accent-gold">On-Site / Active</span>
           </div>
         </div>
         
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
           <div>
-            <h3 className="text-2xl md:text-3xl font-black text-white tracking-tight">Hakkasan Las Vegas</h3>
-            <p className="text-muted-foreground text-sm mt-1">VIP Host • Main Floor</p>
+            <h3 className="text-2xl md:text-3xl font-display font-bold text-foreground tracking-tight italic">
+              Hakkasan Las Vegas
+            </h3>
+            <p className="text-muted-foreground text-sm mt-1">VIP Host - Main Floor</p>
           </div>
           <div className="flex items-center gap-6">
             <div className="flex items-center gap-2 text-muted-foreground">
@@ -275,10 +280,10 @@ function SpecialistDashboard({ availability, onToggleAvailability, isLoading }: 
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground mb-1">Shifts Locked</p>
-              <p className="text-3xl font-black text-white">{stats.shiftsLocked}</p>
+              <p className="text-3xl font-display font-bold text-foreground">{stats.shiftsLocked}</p>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-accent-emerald/10 flex items-center justify-center">
-              <Check className="w-6 h-6 text-accent-emerald" />
+            <div className="w-12 h-12 rounded-xl bg-accent-gold/10 flex items-center justify-center">
+              <Check className="w-6 h-6 text-accent-gold" />
             </div>
           </div>
         </div>
@@ -287,10 +292,10 @@ function SpecialistDashboard({ availability, onToggleAvailability, isLoading }: 
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground mb-1">Hours Logged</p>
-              <p className="text-3xl font-black text-white">{stats.hoursLogged}</p>
+              <p className="text-3xl font-display font-bold text-foreground">{stats.hoursLogged}</p>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-accent-pink/10 flex items-center justify-center">
-              <Clock className="w-6 h-6 text-accent-pink" />
+            <div className="w-12 h-12 rounded-xl bg-accent-crimson/10 flex items-center justify-center">
+              <Clock className="w-6 h-6 text-accent-crimson" />
             </div>
           </div>
         </div>
@@ -299,13 +304,13 @@ function SpecialistDashboard({ availability, onToggleAvailability, isLoading }: 
           <div className="flex items-center justify-between">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground mb-1">Dispatched Earnings</p>
-              <p className="text-3xl font-black text-white">${stats.earnings.toLocaleString()}</p>
+              <p className="text-3xl font-display font-bold text-foreground">${stats.earnings.toLocaleString()}</p>
             </div>
-            <div className="w-12 h-12 rounded-xl bg-accent-emerald/10 flex items-center justify-center">
-              <DollarSign className="w-6 h-6 text-accent-emerald" />
+            <div className="w-12 h-12 rounded-xl bg-accent-gold/10 flex items-center justify-center">
+              <DollarSign className="w-6 h-6 text-accent-gold" />
             </div>
           </div>
-          <div className="mt-3 flex items-center gap-1 text-accent-emerald text-xs">
+          <div className="mt-3 flex items-center gap-1 text-accent-gold text-xs">
             <TrendingUp className="w-3 h-3" />
             <span>+18% this month</span>
           </div>
@@ -390,8 +395,8 @@ function AvailabilityCalendar({ availability, onToggle, disabled }: Availability
               aspect-square rounded-lg text-sm font-semibold transition-all duration-200
               ${!date ? 'invisible' : ''}
               ${date && availability.has(date.dateStr) 
-                ? 'bg-accent-emerald text-background neon-emerald' 
-                : 'bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-white'
+                ? 'btn-gold neon-gold' 
+                : 'bg-white/5 text-muted-foreground hover:bg-white/10 hover:text-foreground'
               }
               ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
             `}
@@ -403,7 +408,7 @@ function AvailabilityCalendar({ availability, onToggle, disabled }: Availability
       
       <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
         <div className="flex items-center gap-2">
-          <div className="w-3 h-3 rounded bg-accent-emerald"></div>
+          <div className="w-3 h-3 rounded bg-accent-gold"></div>
           <span>Available</span>
         </div>
         <div className="flex items-center gap-2">
@@ -457,9 +462,9 @@ function VenuePortal({ shiftForm, setShiftForm, onBroadcast, isLoading }: VenueP
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'Active': return 'bg-accent-emerald text-background';
+      case 'Active': return 'bg-accent-gold text-primary-foreground';
       case 'Break': return 'bg-warning/20 text-warning';
-      case 'Transitioning': return 'bg-accent-pink/20 text-accent-pink';
+      case 'Transitioning': return 'bg-accent-crimson/20 text-accent-crimson-light';
       default: return 'bg-muted text-muted-foreground';
     }
   };
@@ -472,8 +477,8 @@ function VenuePortal({ shiftForm, setShiftForm, onBroadcast, isLoading }: VenueP
           <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">Live Roster</h2>
           <div className="flex items-center gap-2">
             <span className="relative flex h-2 w-2">
-              <span className="beacon-pulse absolute inline-flex h-full w-full rounded-full bg-accent-emerald opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-emerald"></span>
+              <span className="beacon-pulse absolute inline-flex h-full w-full rounded-full bg-accent-gold opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-accent-gold"></span>
             </span>
             <span className="text-xs text-muted-foreground">{activeRoster.length} Active</span>
           </div>
@@ -494,10 +499,10 @@ function VenuePortal({ shiftForm, setShiftForm, onBroadcast, isLoading }: VenueP
                 <tr key={idx} className="border-b border-border/50 hover:bg-white/5 transition-colors">
                   <td className="py-4 px-4">
                     <div className="flex items-center gap-3">
-                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-emerald/30 to-accent-pink/30 flex items-center justify-center text-xs font-bold text-white">
+                      <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-accent-gold/30 to-accent-crimson/30 flex items-center justify-center text-xs font-bold text-foreground">
                         {member.name.split(' ').map(n => n[0]).join('')}
                       </div>
-                      <span className="font-semibold text-white">{member.name}</span>
+                      <span className="font-semibold text-foreground">{member.name}</span>
                     </div>
                   </td>
                   <td className="py-4 px-4 text-muted-foreground text-sm">{member.role}</td>
@@ -520,38 +525,38 @@ function VenuePortal({ shiftForm, setShiftForm, onBroadcast, isLoading }: VenueP
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-2">Date</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Date</label>
             <input
               type="date"
               value={shiftForm.date}
               onChange={(e) => setShiftForm(prev => ({ ...prev, date: e.target.value }))}
-              className="w-full bg-surface border border-border rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-accent-emerald/50 transition-colors"
+              className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-foreground text-sm focus:outline-none focus:border-accent-gold transition-colors"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-2">Start Time</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Time Start</label>
             <input
               type="time"
               value={shiftForm.timeStart}
               onChange={(e) => setShiftForm(prev => ({ ...prev, timeStart: e.target.value }))}
-              className="w-full bg-surface border border-border rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-accent-emerald/50 transition-colors"
+              className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-foreground text-sm focus:outline-none focus:border-accent-gold transition-colors"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-2">End Time</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Time End</label>
             <input
               type="time"
               value={shiftForm.timeEnd}
               onChange={(e) => setShiftForm(prev => ({ ...prev, timeEnd: e.target.value }))}
-              className="w-full bg-surface border border-border rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-accent-emerald/50 transition-colors"
+              className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-foreground text-sm focus:outline-none focus:border-accent-gold transition-colors"
             />
           </div>
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-2">Role Type</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Role</label>
             <select
               value={shiftForm.role}
               onChange={(e) => setShiftForm(prev => ({ ...prev, role: e.target.value }))}
-              className="w-full bg-surface border border-border rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-accent-emerald/50 transition-colors"
+              className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-foreground text-sm focus:outline-none focus:border-accent-gold transition-colors"
             >
               <option value="">Select Role</option>
               <option value="vip-host">VIP Host</option>
@@ -562,66 +567,64 @@ function VenuePortal({ shiftForm, setShiftForm, onBroadcast, isLoading }: VenueP
             </select>
           </div>
           <div>
-            <label className="block text-xs font-semibold text-muted-foreground mb-2">Hourly Rate</label>
+            <label className="block text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wide">Rate/Hr</label>
             <input
               type="text"
-              placeholder="$50/hr"
+              placeholder="$50"
               value={shiftForm.rate}
               onChange={(e) => setShiftForm(prev => ({ ...prev, rate: e.target.value }))}
-              className="w-full bg-surface border border-border rounded-lg px-4 py-3 text-sm text-white placeholder:text-muted-foreground focus:outline-none focus:border-accent-emerald/50 transition-colors"
+              className="w-full px-4 py-3 rounded-lg bg-surface border border-border text-foreground text-sm focus:outline-none focus:border-accent-gold transition-colors"
             />
           </div>
         </div>
 
-        <button
-          onClick={onBroadcast}
-          disabled={isLoading}
-          className="mt-6 w-full md:w-auto px-8 py-3 bg-accent-emerald text-background font-bold rounded-xl hover:bg-accent-emerald/90 transition-all neon-emerald disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
-        >
-          <Send className="w-4 h-4" />
-          Broadcast to Network
-        </button>
+        <div className="mt-6 flex justify-end">
+          <button
+            onClick={onBroadcast}
+            disabled={isLoading}
+            className="px-6 py-3 rounded-lg btn-gold flex items-center gap-2 text-sm disabled:opacity-50"
+          >
+            <Send className="w-4 h-4" />
+            Broadcast to Network
+          </button>
+        </div>
       </div>
 
       {/* Roster Discovery */}
       <div className="glass-card p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground">Roster Discovery</h2>
-          <button className="text-xs text-accent-emerald font-semibold flex items-center gap-1 hover:underline">
-            View All <ChevronRight className="w-3 h-3" />
-          </button>
-        </div>
-
-        <div className="flex gap-4 overflow-x-auto pb-4 -mx-2 px-2 scrollbar-hide">
+        <h2 className="text-xs font-bold uppercase tracking-[0.2em] text-muted-foreground mb-6">Roster Discovery</h2>
+        
+        <div className="flex gap-4 overflow-x-auto pb-4 -mx-2 px-2">
           {availableSpecialists.map((specialist, idx) => (
             <div 
-              key={idx}
-              className="flex-shrink-0 w-64 glass-card p-5 hover:border-accent-emerald/30 transition-all cursor-pointer group"
+              key={idx} 
+              className="flex-shrink-0 w-64 glass-card p-4 hover:border-accent-gold/40 transition-all duration-300"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-pink/30 to-accent-emerald/30 flex items-center justify-center text-sm font-bold text-white">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-accent-gold/30 to-accent-crimson/30 flex items-center justify-center text-sm font-bold text-foreground">
                   {specialist.name.split(' ').map(n => n[0]).join('')}
                 </div>
-                <div className="flex items-center gap-1 text-warning">
-                  <Star className="w-3 h-3 fill-current" />
-                  <span className="text-xs font-bold">{specialist.rating}</span>
+                <div>
+                  <h3 className="font-semibold text-foreground">{specialist.name}</h3>
+                  <div className="flex items-center gap-1 text-accent-gold text-xs">
+                    <Star className="w-3 h-3 fill-current" />
+                    <span>{specialist.rating}</span>
+                  </div>
                 </div>
               </div>
               
-              <h3 className="font-bold text-white mb-2">{specialist.name}</h3>
-              
-              <div className="flex flex-wrap gap-1 mb-4">
+              <div className="flex flex-wrap gap-1.5 mb-4">
                 {specialist.skills.map((skill, skillIdx) => (
                   <span 
                     key={skillIdx}
-                    className="px-2 py-1 bg-white/5 rounded text-xs text-muted-foreground"
+                    className="px-2 py-0.5 rounded-full bg-white/5 text-xs text-muted-foreground"
                   >
                     {skill}
                   </span>
                 ))}
               </div>
-
-              <button className="w-full py-2 rounded-lg border border-accent-emerald/30 text-accent-emerald text-sm font-semibold hover:bg-accent-emerald/10 transition-all group-hover:border-accent-emerald/50">
+              
+              <button className="w-full py-2 rounded-lg btn-crimson text-xs">
                 Direct Invite
               </button>
             </div>

@@ -1,23 +1,29 @@
 import './globals.css'
-import { Inter, Space_Grotesk } from 'next/font/google'
+import { Playfair_Display, Inter } from 'next/font/google'
+
+const playfair = Playfair_Display({ 
+  subsets: ['latin'],
+  variable: '--font-playfair',
+  weight: ['400', '500', '600', '700', '800', '900']
+})
 
 const inter = Inter({ 
   subsets: ['latin'],
   variable: '--font-inter'
 })
 
-const spaceGrotesk = Space_Grotesk({ 
-  subsets: ['latin'],
-  variable: '--font-space-grotesk'
-})
-
 export const metadata = {
-  title: 'UpNext // Complete Operational Control',
-  description: 'Premium digital management infrastructure for the nightlife and hospitality sector',
+  title: 'UpNext',
+  description: "Phoenix's Premier Dancers - Premium digital management infrastructure for the nightlife and hospitality sector",
+  icons: {
+    icon: '/favicon.jpg',
+    shortcut: '/favicon.jpg',
+    apple: '/favicon.jpg',
+  },
 }
 
 export const viewport = {
-  themeColor: '#0a0a0c',
+  themeColor: '#0d0b0a',
   width: 'device-width',
   initialScale: 1,
 }
@@ -28,7 +34,7 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en" className={`${inter.variable} ${spaceGrotesk.variable} bg-background`}>
+    <html lang="en" className={`${playfair.variable} ${inter.variable} bg-background`}>
       <body className="font-sans antialiased">
         {children}
       </body>
