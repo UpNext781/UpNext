@@ -94,15 +94,15 @@ export default function UpNextWorkspace() {
 
       <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
         {/* Header with Brand Logo */}
-        <header className="py-6 md:py-10">
-          <div className="flex flex-col items-center gap-6">
-            <div className="relative w-full max-w-md mx-auto">
+        <header className="pt-8 pb-6 md:pt-14 md:pb-10">
+          <div className="flex flex-col items-center">
+            <div className="relative w-full max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto">
               <Image
                 src="/images/upnext-logo.jpg"
                 alt="UpNext - Phoenix's Premier Dancers"
-                width={600}
-                height={200}
-                className="w-full h-auto rounded-lg"
+                width={1200}
+                height={400}
+                className="w-full h-auto object-contain rounded-xl"
                 priority
               />
             </div>
