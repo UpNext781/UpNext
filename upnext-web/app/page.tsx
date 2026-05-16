@@ -6,6 +6,7 @@ import TalentDiscoveryEngine from './components/TalentDiscoveryEngine';
 import LucasConcierge from './components/LucasConcierge';
 import RoxyCoPilot from './components/RoxyCoPilot';
 import DigitalGreenRoom from './components/DigitalGreenRoom';
+import VelvetRopeOnboarding from './components/VelvetRopeOnboarding';
 import { 
   Sparkles, 
   Briefcase, 
@@ -969,6 +970,7 @@ interface OperatorAppProps {
 }
 
 function OperatorApp({ syncWithYantra, isLoading }: OperatorAppProps) {
+  const [isVerified, setIsVerified] = useState(false);
   const [discretionMode, setDiscretionMode] = useState(false);
   const [decoyActive, setDecoyActive] = useState(false);
   const [availability, setAvailability] = useState<Set<string>>(new Set(['2024-01-15', '2024-01-17', '2024-01-19', '2024-01-20']));
@@ -1019,6 +1021,13 @@ function OperatorApp({ syncWithYantra, isLoading }: OperatorAppProps) {
   };
 
   return (
+    <>
+      {!isVerified ? (
+        <VelvetRopeOnboarding
+          syncWithYantra={syncWithYantra}
+          onVerificationComplete={() => setIsVerified(true)}
+        />
+      ) : (
     <div className={`space-y-6 transition-all duration-500 ${decoyActive ? 'decoy-ghost-state' : ''}`}>
       {/* Decoy Cover App (visible only in ghost state) */}
       {decoyActive && (
@@ -1228,6 +1237,8 @@ function OperatorApp({ syncWithYantra, isLoading }: OperatorAppProps) {
         />
       </div>
     </div>
+      )}
+    </>
   );
 }
 
