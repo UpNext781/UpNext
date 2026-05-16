@@ -12,11 +12,18 @@ import {
   Zap,
   AlertTriangle,
   Eye,
+  EyeOff,
+  DollarSign,
+  Crosshair,
+  ShieldAlert,
+  Radio,
 } from 'lucide-react';
 
 interface RoxyCoPilotProps {
   syncWithYantra: (action: string, payload: Record<string, unknown>) => Promise<{ success: boolean }>;
   discretionMode: boolean;
+  decoyActive?: boolean;
+  onDecoyToggle?: () => void;
 }
 
 interface RoxyMessage {
@@ -56,6 +63,73 @@ const ROXY_RESPONSES: Record<string, string> = {
     "I'm running a full analysis on your current floor metrics. Saturation at your venue is holding at 31%\u2014plenty of room. VIP demand is spiking in the next 90 minutes. I'd recommend positioning near Table 3 for maximum visibility. Need anything else?",
 };
 
+// ============================================
+// TACTICAL INTELLIGENCE ALERTS
+// ============================================
+interface TacticalAlert {
+  id: string;
+  type: 'pricing' | 'target' | 'opsec';
+  text: string;
+  time: string;
+}
+
+const TACTICAL_ALERTS: TacticalAlert[] = [
+  {
+    id: 'alert-pricing-1',
+    type: 'pricing',
+    text: 'Surge Detected: Floor at 92% capacity. Suggest raising VIP minimums by $100.',
+    time: '12s ago',
+  },
+  {
+    id: 'alert-target-1',
+    type: 'target',
+    text: "Proximity Hit: A client matching your 'Whale' profile just booked a skybox.",
+    time: '2m ago',
+  },
+  {
+    id: 'alert-opsec-1',
+    type: 'opsec',
+    text: 'Tribunal Update: 1 operator flagged in the Digital Green Room.',
+    time: '8m ago',
+  },
+  {
+    id: 'alert-pricing-2',
+    type: 'pricing',
+    text: "VIP demand inflection point reached. Dance rate premium now +35% above floor avg.",
+    time: '14m ago',
+  },
+  {
+    id: 'alert-target-2',
+    type: 'target',
+    text: "Repeat Client Alert: 'SilverFox-12' on approach. Last visit: $1,800 spend. Prefers Table 7.",
+    time: '19m ago',
+  },
+];
+
+const ALERT_STYLES: Record<TacticalAlert['type'], { bg: string; border: string; dot: string; icon: React.ElementType; label: string }> = {
+  pricing: {
+    bg: 'bg-accent-gold/8',
+    border: 'border-accent-gold/20',
+    dot: 'bg-accent-gold animate-pulse',
+    icon: DollarSign,
+    label: 'PRICING',
+  },
+  target: {
+    bg: 'bg-accent-crimson/8',
+    border: 'border-accent-crimson/20',
+    dot: 'bg-accent-crimson-light animate-pulse',
+    icon: Crosshair,
+    label: 'TARGET',
+  },
+  opsec: {
+    bg: 'bg-muted-foreground/5',
+    border: 'border-border',
+    dot: 'bg-muted-foreground/40',
+    icon: ShieldAlert,
+    label: 'OPSEC',
+  },
+};
+
 const LIVE_FEED_ITEMS = [
   {
     id: 'feed-1',
@@ -65,7 +139,7 @@ const LIVE_FEED_ITEMS = [
   },
   {
     id: 'feed-2',
-    text: 'Core recommendation locked. Christie\'s Cabaret remains optimal.',
+    text: "Core recommendation locked. Christie's Cabaret remains optimal.",
     time: '2m ago',
     priority: 'normal' as const,
   },
@@ -83,17 +157,27 @@ const LIVE_FEED_ITEMS = [
   },
 ];
 
-export default function RoxyCoPilot({ syncWithYantra, discretionMode }: RoxyCoPilotProps) {
+export default function RoxyCoPilot({ syncWithYantra, discretionMode, decoyActive, onDecoyToggle }: RoxyCoPilotProps) {
   const [messages, setMessages] = useState<RoxyMessage[]>([]);
   const [inputValue, setInputValue] = useState('');
   const [isThinking, setIsThinking] = useState(false);
   const [feedExpanded, setFeedExpanded] = useState(true);
   const [commandsExpanded, setCommandsExpanded] = useState(true);
+  const [alertsExpanded, setAlertsExpanded] = useState(true);
+  const [radarPulseCount, setRadarPulseCount] = useState(0);
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages]);
+
+  // Radar pulse counter for realism
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRadarPulseCount(prev => prev + 1);
+    }, 4000);
+    return () => clearInterval(interval);
+  }, []);
 
   const sendCommand = async (content: string, commandId?: string) => {
     const userMsg: RoxyMessage = {
@@ -159,11 +243,11 @@ export default function RoxyCoPilot({ syncWithYantra, discretionMode }: RoxyCoPi
           </div>
           <div>
             <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-muted-foreground">
-              Roxy AI <span className="text-accent-crimson-light">//</span> Strategic Shift Co-Pilot
+              Roxy AI <span className="text-accent-crimson-light">//</span> Tactical Command Center
             </h2>
             <p className="text-[10px] uppercase tracking-[0.15em] text-emerald-400 font-semibold flex items-center gap-1.5">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              Online &mdash; Monitoring floor metrics
+              Online &mdash; Full spectrum monitoring
             </p>
           </div>
         </div>
@@ -173,7 +257,130 @@ export default function RoxyCoPilot({ syncWithYantra, discretionMode }: RoxyCoPi
         </div>
       </div>
 
-      {/* Live Status Feed */}
+      {/* ============================================ */}
+      {/* LIVE INTELLIGENCE FEED (Typed Alert Chips)   */}
+      {/* ============================================ */}
+      <div className="relative space-y-2">
+        <button
+          onClick={() => setAlertsExpanded(!alertsExpanded)}
+          className="w-full flex items-center justify-between"
+        >
+          <div className="flex items-center gap-2">
+            <Zap className="w-3.5 h-3.5 text-accent-crimson-light" />
+            <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
+              Live Intelligence Alerts
+            </p>
+            <span className="w-4 h-4 rounded-full bg-accent-crimson/20 flex items-center justify-center">
+              <span className="text-[8px] font-bold text-accent-crimson-light">{TACTICAL_ALERTS.length}</span>
+            </span>
+          </div>
+          {alertsExpanded ? (
+            <ChevronUp className="w-3.5 h-3.5 text-muted-foreground" />
+          ) : (
+            <ChevronDown className="w-3.5 h-3.5 text-muted-foreground" />
+          )}
+        </button>
+
+        {alertsExpanded && (
+          <div className="space-y-2 max-h-[220px] overflow-y-auto pr-1">
+            {TACTICAL_ALERTS.map((alert) => {
+              const style = ALERT_STYLES[alert.type];
+              const AlertIcon = style.icon;
+              return (
+                <div
+                  key={alert.id}
+                  className={`flex items-start gap-3 px-3.5 py-3 rounded-xl border transition-colors ${style.bg} ${style.border}`}
+                >
+                  <div className="flex flex-col items-center gap-1.5 flex-shrink-0 mt-0.5">
+                    <AlertIcon className={`w-3.5 h-3.5 ${
+                      alert.type === 'pricing' ? 'text-accent-gold' :
+                      alert.type === 'target' ? 'text-accent-crimson-light' :
+                      'text-muted-foreground/60'
+                    }`} />
+                    <span className={`w-1.5 h-1.5 rounded-full ${style.dot}`} />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2 mb-1">
+                      <span className={`text-[8px] font-bold uppercase tracking-[0.2em] ${
+                        alert.type === 'pricing' ? 'text-accent-gold' :
+                        alert.type === 'target' ? 'text-accent-crimson-light' :
+                        'text-muted-foreground/50'
+                      }`}>
+                        {style.label}
+                      </span>
+                      <span className="text-[8px] text-muted-foreground/30">{alert.time}</span>
+                    </div>
+                    <p className={`text-xs leading-relaxed ${
+                      discretionMode ? 'blur-sm select-none' : 'text-foreground/80'
+                    }`}>
+                      {alert.text}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      {/* ============================================ */}
+      {/* BLACKBOOK RADAR                              */}
+      {/* ============================================ */}
+      <div className="relative">
+        <div className="flex items-center gap-2 mb-3">
+          <Radio className="w-3.5 h-3.5 text-accent-gold" />
+          <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
+            Blackbook Radar
+          </p>
+          <span className="text-[9px] text-accent-gold font-semibold ml-auto">
+            Scan #{radarPulseCount + 1}
+          </span>
+        </div>
+
+        <div className="relative rounded-xl bg-surface/60 border border-accent-gold/10 overflow-hidden p-4">
+          {/* Radar visualization */}
+          <div className="relative w-full h-28 flex items-center justify-center">
+            {/* Concentric rings */}
+            <div className="absolute w-24 h-24 rounded-full border border-accent-gold/8" />
+            <div className="absolute w-16 h-16 rounded-full border border-accent-gold/12" />
+            <div className="absolute w-8 h-8 rounded-full border border-accent-gold/18" />
+
+            {/* Center dot */}
+            <div className="absolute w-2 h-2 rounded-full bg-accent-gold shadow-[0_0_8px_rgba(201,162,39,0.5)]" />
+
+            {/* Sweep line */}
+            <div
+              className="absolute w-12 h-[1px] bg-gradient-to-r from-accent-gold/60 to-transparent origin-left radar-sweep"
+              style={{ left: '50%', top: '50%' }}
+            />
+
+            {/* Detected blips */}
+            <div className="absolute w-1.5 h-1.5 rounded-full bg-accent-gold animate-pulse"
+              style={{ top: '25%', left: '62%' }} />
+            <div className="absolute w-1 h-1 rounded-full bg-accent-crimson-light animate-pulse"
+              style={{ top: '60%', left: '35%' }} />
+            <div className="absolute w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"
+              style={{ top: '40%', left: '70%' }} />
+
+            {/* Fade overlay at edges */}
+            <div className="absolute inset-0 bg-gradient-to-t from-surface/60 via-transparent to-surface/60 pointer-events-none" />
+          </div>
+
+          <div className="flex items-center justify-between mt-3 pt-3 border-t border-accent-gold/10">
+            <div className="flex items-center gap-2">
+              <span className="w-1.5 h-1.5 rounded-full bg-accent-gold animate-pulse" />
+              <span className="text-[10px] font-semibold text-accent-gold">Active Floor Scanning</span>
+            </div>
+            <span className={`text-[10px] ${discretionMode ? 'blur-sm select-none' : 'text-muted-foreground/60'}`}>
+              3 matches on-premises
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* ============================================ */}
+      {/* STATUS FEED (original)                       */}
+      {/* ============================================ */}
       <div className="relative space-y-2">
         <button
           onClick={() => setFeedExpanded(!feedExpanded)}
@@ -182,7 +389,7 @@ export default function RoxyCoPilot({ syncWithYantra, discretionMode }: RoxyCoPi
           <div className="flex items-center gap-2">
             <Activity className="w-3.5 h-3.5 text-accent-gold" />
             <p className="text-[10px] font-bold uppercase tracking-[0.15em] text-muted-foreground">
-              Live Intelligence Feed
+              Roxy Status Feed
             </p>
           </div>
           {feedExpanded ? (
@@ -348,6 +555,32 @@ export default function RoxyCoPilot({ syncWithYantra, discretionMode }: RoxyCoPi
           <span>Discretion: {discretionMode ? 'Active' : 'Off'}</span>
         </div>
       </form>
+
+      {/* ============================================ */}
+      {/* DECOY PROTOCOL (Panic Button)                */}
+      {/* ============================================ */}
+      <div className="relative border-t border-accent-crimson/15 pt-4 mt-2">
+        <button
+          onClick={onDecoyToggle}
+          className={`w-full flex items-center justify-center gap-3 px-5 py-4 rounded-xl font-bold text-xs uppercase tracking-[0.2em] transition-all duration-300 ${
+            decoyActive
+              ? 'bg-emerald-500/15 border-2 border-emerald-500/40 text-emerald-400 shadow-[0_0_30px_rgba(16,185,129,0.15)]'
+              : 'bg-accent-crimson/10 border-2 border-accent-crimson/25 text-accent-crimson-light hover:bg-accent-crimson/20 hover:border-accent-crimson/40 hover:shadow-[0_0_30px_rgba(165,42,42,0.15)]'
+          }`}
+        >
+          {decoyActive ? (
+            <Eye className="w-4 h-4" />
+          ) : (
+            <EyeOff className="w-4 h-4" />
+          )}
+          {decoyActive ? 'Disengage Decoy Protocol' : 'Engage Decoy Protocol'}
+        </button>
+        <p className="text-[9px] text-center text-muted-foreground/30 mt-2 tracking-wide">
+          {decoyActive
+            ? 'Ghost state active. All identifiers masked. Tap to restore.'
+            : 'Instantly mask all sensitive data. Screen converts to cover app.'}
+        </p>
+      </div>
     </div>
   );
 }

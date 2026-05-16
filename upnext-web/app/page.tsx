@@ -970,6 +970,7 @@ interface OperatorAppProps {
 
 function OperatorApp({ syncWithYantra, isLoading }: OperatorAppProps) {
   const [discretionMode, setDiscretionMode] = useState(false);
+  const [decoyActive, setDecoyActive] = useState(false);
   const [availability, setAvailability] = useState<Set<string>>(new Set(['2024-01-15', '2024-01-17', '2024-01-19', '2024-01-20']));
 
   const toggleAvailability = async (date: string) => {
@@ -987,6 +988,13 @@ function OperatorApp({ syncWithYantra, isLoading }: OperatorAppProps) {
     const newMode = !discretionMode;
     setDiscretionMode(newMode);
     await syncWithYantra('discretion_toggle', { enabled: newMode });
+  };
+
+  const toggleDecoy = async () => {
+    const newDecoy = !decoyActive;
+    setDecoyActive(newDecoy);
+    if (newDecoy) setDiscretionMode(true);
+    await syncWithYantra('decoy_protocol', { engaged: newDecoy, timestamp: new Date().toISOString() });
   };
 
   const shiftLedger = [
@@ -1011,7 +1019,57 @@ function OperatorApp({ syncWithYantra, isLoading }: OperatorAppProps) {
   };
 
   return (
-    <div className="space-y-6">
+    <div className={`space-y-6 transition-all duration-500 ${decoyActive ? 'decoy-ghost-state' : ''}`}>
+      {/* Decoy Cover App (visible only in ghost state) */}
+      {decoyActive && (
+        <div className="glass-card p-6 border-emerald-500/20 bg-surface/95">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-lg bg-neutral-700 flex items-center justify-center">
+                <Calendar className="w-4 h-4 text-neutral-400" />
+              </div>
+              <div>
+                <p className="text-sm font-semibold text-neutral-300">My Schedule</p>
+                <p className="text-[10px] text-neutral-500">Week of Jan 15 - 21</p>
+              </div>
+            </div>
+            <button
+              onClick={toggleDecoy}
+              className="px-4 py-2 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-emerald-400 text-xs font-bold uppercase tracking-wider hover:bg-emerald-500/25 transition-colors"
+            >
+              Exit Cover
+            </button>
+          </div>
+          <div className="grid grid-cols-7 gap-1">
+            {['Mon','Tue','Wed','Thu','Fri','Sat','Sun'].map(day => (
+              <div key={day} className="text-center text-[10px] text-neutral-500 font-semibold uppercase pb-2">{day}</div>
+            ))}
+            {Array.from({length: 7}, (_, i) => (
+              <div key={i} className={`text-center py-3 rounded-lg text-xs ${
+                i === 2 || i === 5 ? 'bg-neutral-700/50 text-neutral-300' : 'text-neutral-500'
+              }`}>
+                {15 + i}
+              </div>
+            ))}
+          </div>
+          <div className="mt-4 space-y-2">
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-neutral-800/50">
+              <div className="w-1 h-8 rounded-full bg-neutral-600" />
+              <div>
+                <p className="text-xs text-neutral-300">Team standup</p>
+                <p className="text-[10px] text-neutral-500">9:00 AM - 9:30 AM</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 px-3 py-2.5 rounded-lg bg-neutral-800/50">
+              <div className="w-1 h-8 rounded-full bg-neutral-600" />
+              <div>
+                <p className="text-xs text-neutral-300">Project review</p>
+                <p className="text-[10px] text-neutral-500">2:00 PM - 3:00 PM</p>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
       {/* Discretion Mode Toggle - Prominent */}
       <div className="glass-card p-4 flex items-center justify-between">
         <div className="flex items-center gap-3">
@@ -1044,7 +1102,7 @@ function OperatorApp({ syncWithYantra, isLoading }: OperatorAppProps) {
       <MarketPulse syncWithYantra={syncWithYantra} discretionMode={discretionMode} isLoading={isLoading} />
 
       {/* Roxy AI - Strategic Shift Co-Pilot */}
-      <RoxyCoPilot syncWithYantra={syncWithYantra} discretionMode={discretionMode} />
+      <RoxyCoPilot syncWithYantra={syncWithYantra} discretionMode={discretionMode} decoyActive={decoyActive} onDecoyToggle={toggleDecoy} />
 
       {/* Digital Green Room - Tactical Comms */}
       <DigitalGreenRoom syncWithYantra={syncWithYantra} discretionMode={discretionMode} />
