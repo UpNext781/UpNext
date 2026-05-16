@@ -371,7 +371,7 @@ function VenueDirectory() {
       coverCharge: '$20 Standard / Free before 9PM',
       tonightsSpecial: '$5 Domestics until Midnight',
       vibeTag: 'High-Energy',
-      image: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&h=400&fit=crop'
+      image: 'https://images.unsplash.com/photo-1598387993441-a364f854c3e1?w=600&h=400&fit=crop'
     },
     {
       id: 2,
@@ -382,7 +382,7 @@ function VenueDirectory() {
       coverCharge: '$10 Flat / Free with VIP',
       tonightsSpecial: '2-for-1 Premium Cocktails',
       vibeTag: 'Lounge',
-      image: 'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=600&h=400&fit=crop'
+      image: 'https://images.unsplash.com/photo-1566417713940-fe7c737a9ef2?w=600&h=400&fit=crop'
     },
     {
       id: 3,
@@ -393,7 +393,7 @@ function VenueDirectory() {
       coverCharge: '$15 Standard / $25 VIP Express',
       tonightsSpecial: 'Live DJ + $8 Signature Shots',
       vibeTag: 'High-Energy',
-      image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&h=400&fit=crop'
+      image: 'https://images.unsplash.com/photo-1571204829887-3b8d69e4094d?w=600&h=400&fit=crop'
     },
   ];
 

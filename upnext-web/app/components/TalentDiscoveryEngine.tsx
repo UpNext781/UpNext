@@ -164,26 +164,26 @@ const getGalleryUrls = (id: number, vibeStyle: string): string[] => {
 // ============================================
 
 const STAGE_NAMES = [
-  'Aria Luxe', 'Nova Sterling', 'Jade Velvet', 'Sable Reign', 'Ruby Onyx',
-  'Luna Frost', 'Ember Rose', 'Ivy Noir', 'Diamond Dior', 'Scarlett Vice',
-  'Aurora Gold', 'Cleo Jewel', 'Venus Storm', 'Raven Silk', 'Pearl Elise',
-  'Zara Phoenix', 'Mila Rouge', 'Giselle Noir', 'Carmen Elite', 'Dahlia Moon',
-  'Sadie Lux', 'Romy Vale', 'Harlow Grace', 'Eden Monroe', 'Freya Cole',
-  'Nyx Shadow', 'Layla Sterling', 'Willow Hart', 'Sage Devereaux', 'Blair Reign',
-  'Celeste Cruz', 'Valentina Rose', 'Maren Stone', 'Thalia Bloom', 'Kira Vex',
-  'Anya Slate', 'Brynn Adler', 'Delphine Lux', 'Esme Graves', 'Fable Quinn',
-  'Gemma Haze', 'Haven Leigh', 'Isadora Cain', 'Juno Sable', 'Katya Wren',
-  'Lilith Rayne', 'Maris Thorne', 'Naia Frost', 'Opal Byrne', 'Piper Knox',
-  'Quinn Soleil', 'Rhea Vance', 'Sienna Wolfe', 'Tatum Reign', 'Uma Steele',
-  'Vera Lune', 'Wynn Hale', 'Xena Vale', 'Yara Silk', 'Zola Ember',
-  'Alina Dusk', 'Bianca Storm', 'Coralie Ash', 'Demi Luxe', 'Elara Noir',
-  'Fiona Blaze', 'Greta Haze', 'Helena Crest', 'Iris Jade', 'Jules Reign',
-  'Kenna Gold', 'Lena Frost', 'Mona Raven', 'Nina Steele', 'Olivia Dawn',
-  'Paloma Cruz', 'Quorra Slade', 'Reina Lux', 'Sonia Vale', 'Terra Moon',
-  'Ursa Quinn', 'Veda Blaze', 'Winter Cole', 'Xyla Storm', 'Yuki Onyx',
-  'Ziva Reign', 'Astrid Noir', 'Bexley Luxe', 'Calla Vex', 'Daria Frost',
-  'Elowen Silk', 'Farrah Gold', 'Gaia Haze', 'Hadley Stone', 'Indigo Cruz',
-  'Jessamine Lux', 'Kaia Sterling', 'Lyric Ash', 'Meadow Reign', 'Neve Storm'
+  'Aria', 'Nova', 'Jade', 'Sable', 'Ruby',
+  'Luna', 'Ember', 'Ivy', 'Diamond', 'Scarlett',
+  'Aurora', 'Cleo', 'Venus', 'Raven', 'Pearl',
+  'Zara', 'Mila', 'Giselle', 'Carmen', 'Dahlia',
+  'Sadie', 'Romy', 'Harlow', 'Eden', 'Freya',
+  'Nyx', 'Layla', 'Willow', 'Sage', 'Blair',
+  'Celeste', 'Valentina', 'Maren', 'Thalia', 'Kira',
+  'Anya', 'Brynn', 'Delphine', 'Esme', 'Fable',
+  'Gemma', 'Haven', 'Isadora', 'Juno', 'Katya',
+  'Lilith', 'Maris', 'Naia', 'Opal', 'Piper',
+  'Quinn', 'Rhea', 'Sienna', 'Tatum', 'Uma',
+  'Vera', 'Wynn', 'Xena', 'Yara', 'Zola',
+  'Alina', 'Bianca', 'Coralie', 'Demi', 'Elara',
+  'Fiona', 'Greta', 'Helena', 'Iris', 'Jules',
+  'Kenna', 'Lena', 'Mona', 'Nina', 'Olivia',
+  'Paloma', 'Quorra', 'Reina', 'Sonia', 'Terra',
+  'Ursa', 'Veda', 'Winter', 'Xyla', 'Yuki',
+  'Ziva', 'Astrid', 'Bexley', 'Calla', 'Daria',
+  'Elowen', 'Farrah', 'Gaia', 'Hadley', 'Indigo',
+  'Jessamine', 'Kaia', 'Lyric', 'Meadow', 'Neve'
 ];
 
 // Hair colors mapped intentionally to archetypes
