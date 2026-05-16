@@ -13,6 +13,8 @@ import {
   MapPin,
   Palette,
   X,
+  KeyRound,
+  Wifi,
 } from 'lucide-react';
 
 interface VelvetRopeProps {
@@ -65,6 +67,16 @@ export default function VelvetRopeOnboarding({ syncWithYantra, onVerificationCom
   const [toastMessage, setToastMessage] = useState('');
   const [toastExiting, setToastExiting] = useState(false);
 
+  // Invite code state
+  const [showInviteCode, setShowInviteCode] = useState(false);
+  const [inviteCode, setInviteCode] = useState('');
+  const [inviteValidating, setInviteValidating] = useState(false);
+
+  // NFC scanner modal
+  const [nfcModalOpen, setNfcModalOpen] = useState(false);
+  const [nfcScanning, setNfcScanning] = useState(true);
+  const [nfcSuccess, setNfcSuccess] = useState(false);
+
   const profileComplete = stageName.trim().length > 0 && archetype.length > 0 && anchorVenue.length > 0;
 
   const showToast = useCallback((message: string) => {
@@ -101,6 +113,53 @@ export default function VelvetRopeOnboarding({ syncWithYantra, onVerificationCom
     setGeneratedLink(`upnext.app/vouch/${stageName.toLowerCase().replace(/\s/g, '-')}-${fakeHash}`);
     setVouchLinkGenerated(true);
     setVouchLinkLoading(false);
+  };
+
+  // Validate invite code (fast-tracks to step 1 with 1 vouch)
+  const handleInviteCode = async () => {
+    if (inviteCode.trim().length < 4) return;
+    setInviteValidating(true);
+    await syncWithYantra('velvet_rope_invite_code', {
+      code: inviteCode.trim(),
+      stageName,
+      timestamp: new Date().toISOString(),
+    });
+    await new Promise((r) => setTimeout(r, 1400));
+    setInviteValidating(false);
+    setVouchCount(1);
+    showToast('Invite code validated. 1 peer vouch credited. 1/2 remaining.');
+    setCurrentStep(1);
+  };
+
+  // NFC Tap-to-Vouch flow
+  const handleNfcTap = async () => {
+    setNfcModalOpen(true);
+    setNfcScanning(true);
+    setNfcSuccess(false);
+
+    await syncWithYantra('velvet_rope_nfc_scan', {
+      stageName,
+      timestamp: new Date().toISOString(),
+    });
+
+    // Simulate scanning delay
+    await new Promise((r) => setTimeout(r, 2200));
+    setNfcScanning(false);
+    setNfcSuccess(true);
+
+    // Increment vouch
+    const newCount = Math.min(vouchCount + 1, 2);
+    setVouchCount(newCount);
+    showToast('NFC Proximity Vouch Confirmed. Peer identity verified.');
+
+    // Close modal after brief success display
+    await new Promise((r) => setTimeout(r, 1200));
+    setNfcModalOpen(false);
+
+    // If fully vouched, advance
+    if (newCount >= 2) {
+      setTimeout(() => setCurrentStep(2), 800);
+    }
   };
 
   // Simulate incoming vouches after link is generated
@@ -281,6 +340,56 @@ export default function VelvetRopeOnboarding({ syncWithYantra, onVerificationCom
             </div>
           </div>
 
+          {/* Private Invite Code Toggle */}
+          <div className="space-y-3">
+            <button
+              onClick={() => setShowInviteCode(!showInviteCode)}
+              className="flex items-center gap-2 text-[10px] text-muted-foreground/50 hover:text-accent-gold transition-colors group"
+            >
+              <KeyRound className="w-3 h-3 group-hover:text-accent-gold transition-colors" />
+              <span className="underline underline-offset-4 decoration-muted-foreground/20 group-hover:decoration-accent-gold/40">
+                I have a private invite code
+              </span>
+            </button>
+
+            {showInviteCode && (
+              <div className="rounded-xl bg-surface/60 border border-accent-gold/10 p-4 space-y-3"
+                style={{ animation: 'lucas-panel-enter 0.3s cubic-bezier(0.16, 1, 0.3, 1)' }}
+              >
+                <p className="text-[9px] font-bold uppercase tracking-[0.2em] text-accent-gold/60">
+                  Direct Referral Code
+                </p>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    value={inviteCode}
+                    onChange={(e) => setInviteCode(e.target.value.toUpperCase())}
+                    placeholder="e.g. VR-NOVA-8X2F"
+                    className="flex-1 bg-surface border border-border rounded-lg px-3.5 py-2.5 text-xs text-foreground font-mono placeholder:text-muted-foreground/30 focus:outline-none focus:border-accent-gold/40 transition-all tracking-wider"
+                    maxLength={20}
+                  />
+                  <button
+                    onClick={handleInviteCode}
+                    disabled={inviteCode.trim().length < 4 || inviteValidating || !profileComplete}
+                    className="flex items-center gap-2 px-4 py-2.5 rounded-lg font-bold text-[10px] uppercase tracking-wider transition-all disabled:opacity-25 disabled:cursor-not-allowed bg-accent-gold/10 border border-accent-gold/25 text-accent-gold hover:bg-accent-gold/20"
+                  >
+                    {inviteValidating ? (
+                      <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <>
+                        <ShieldCheck className="w-3.5 h-3.5" />
+                        Verify
+                      </>
+                    )}
+                  </button>
+                </div>
+                <p className="text-[9px] text-muted-foreground/40">
+                  Paste a referral code from a verified dancer to fast-track verification with 1 pre-credited vouch.
+                </p>
+              </div>
+            )}
+          </div>
+
           {/* Submit Profile */}
           <button
             onClick={handleProfileSubmit}
@@ -361,25 +470,34 @@ export default function VelvetRopeOnboarding({ syncWithYantra, onVerificationCom
 
               {/* Generate Vouch Link */}
               {!vouchLinkGenerated ? (
-                <button
-                  onClick={handleGenerateVouchLink}
-                  disabled={vouchLinkLoading}
-                  className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl font-bold text-xs uppercase tracking-[0.15em] transition-all duration-300 btn-gold neon-gold disabled:opacity-60"
-                >
-                  {vouchLinkLoading ? (
-                    <>
-                      <Loader2 className="w-4 h-4 animate-spin" />
-                      Generating Secure Link...
-                    </>
-                  ) : (
-                    <>
-                      <Link2 className="w-4 h-4" />
-                      Generate Secure Vouch Link
-                    </>
-                  )}
-                </button>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-3">
+                  <button
+                    onClick={handleGenerateVouchLink}
+                    disabled={vouchLinkLoading}
+                    className="inline-flex items-center gap-2.5 px-8 py-4 rounded-xl font-bold text-xs uppercase tracking-[0.15em] transition-all duration-300 btn-gold neon-gold disabled:opacity-60"
+                  >
+                    {vouchLinkLoading ? (
+                      <>
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                        Generating Secure Link...
+                      </>
+                    ) : (
+                      <>
+                        <Link2 className="w-4 h-4" />
+                        Generate Secure Vouch Link
+                      </>
+                    )}
+                  </button>
+                  <button
+                    onClick={handleNfcTap}
+                    className="inline-flex items-center gap-2.5 px-6 py-4 rounded-xl font-bold text-xs uppercase tracking-[0.15em] transition-all duration-300 bg-surface border border-accent-crimson/20 text-accent-crimson-light hover:border-accent-crimson/40 hover:bg-accent-crimson/5 hover:shadow-[0_0_25px_rgba(165,42,42,0.1)]"
+                  >
+                    <Wifi className="w-4 h-4" />
+                    NFC Tap-to-Vouch
+                  </button>
+                </div>
               ) : (
-                <div className="space-y-3">
+                <div className="space-y-4">
                   <div className="inline-flex items-center gap-2 px-4 py-2.5 rounded-xl bg-surface border border-accent-gold/20 text-xs text-accent-gold font-mono">
                     <Link2 className="w-3.5 h-3.5 flex-shrink-0" />
                     <span className="truncate max-w-[260px]">{generatedLink}</span>
@@ -387,6 +505,16 @@ export default function VelvetRopeOnboarding({ syncWithYantra, onVerificationCom
                   <p className="text-[10px] text-muted-foreground/50">
                     Share this link with verified peers to receive your vouches.
                   </p>
+                  <div className="pt-1">
+                    <button
+                      onClick={handleNfcTap}
+                      disabled={vouchCount >= 2}
+                      className="inline-flex items-center gap-2.5 px-6 py-3.5 rounded-xl font-bold text-[10px] uppercase tracking-[0.15em] transition-all duration-300 bg-surface border border-accent-crimson/20 text-accent-crimson-light hover:border-accent-crimson/40 hover:bg-accent-crimson/5 hover:shadow-[0_0_25px_rgba(165,42,42,0.1)] disabled:opacity-30 disabled:cursor-not-allowed"
+                    >
+                      <Wifi className="w-3.5 h-3.5" />
+                      NFC Tap-to-Vouch (In Person)
+                    </button>
+                  </div>
                 </div>
               )}
 
@@ -434,6 +562,87 @@ export default function VelvetRopeOnboarding({ syncWithYantra, onVerificationCom
           >
             Skip onboarding (demo)
           </button>
+        </div>
+      )}
+
+      {/* ============================================ */}
+      {/* NFC SCANNER MODAL                            */}
+      {/* ============================================ */}
+      {nfcModalOpen && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center p-6">
+          <div
+            className="absolute inset-0 bg-black/85 backdrop-blur-xl"
+            onClick={() => { if (!nfcScanning) setNfcModalOpen(false); }}
+          />
+          <div
+            className="relative w-full max-w-sm space-y-8 text-center"
+            style={{ animation: 'lucas-panel-enter 0.4s cubic-bezier(0.16, 1, 0.3, 1)' }}
+          >
+            {/* Scanner Ring */}
+            <div className="relative mx-auto w-40 h-40">
+              {/* Outer glow */}
+              <div className={`absolute inset-0 rounded-full transition-all duration-500 ${
+                nfcSuccess
+                  ? 'bg-emerald-500/15 shadow-[0_0_60px_rgba(34,197,94,0.25)]'
+                  : 'bg-accent-crimson/10 shadow-[0_0_60px_rgba(165,42,42,0.2)]'
+              }`} />
+
+              {/* Scanning rings */}
+              {nfcScanning && (
+                <>
+                  <div className="absolute inset-2 rounded-full border-2 border-accent-crimson/30 animate-ping" style={{ animationDuration: '1.5s' }} />
+                  <div className="absolute inset-4 rounded-full border border-accent-crimson/20 animate-ping" style={{ animationDuration: '2s', animationDelay: '0.3s' }} />
+                  <div className="absolute inset-6 rounded-full border border-accent-crimson/15 animate-ping" style={{ animationDuration: '2.5s', animationDelay: '0.6s' }} />
+                </>
+              )}
+
+              {/* Center icon */}
+              <div className={`absolute inset-0 flex items-center justify-center transition-all duration-500 ${
+                nfcSuccess ? 'scale-110' : ''
+              }`}>
+                <div className={`w-20 h-20 rounded-2xl flex items-center justify-center border-2 transition-all duration-500 ${
+                  nfcSuccess
+                    ? 'bg-emerald-500/20 border-emerald-500/40'
+                    : 'bg-surface border-accent-crimson/25'
+                }`}>
+                  {nfcSuccess ? (
+                    <CheckCircle className="w-9 h-9 text-emerald-400" />
+                  ) : (
+                    <Wifi className="w-9 h-9 text-accent-crimson-light animate-pulse" />
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Status Text */}
+            <div className="space-y-2">
+              {nfcSuccess ? (
+                <>
+                  <h3 className="text-lg font-display font-bold italic text-emerald-400">
+                    Vouch Confirmed
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    NFC proximity verification successful. Peer identity authenticated.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h3 className="text-lg font-display font-bold italic text-foreground">
+                    Awaiting Peer Device<span className="text-accent-crimson-light animate-pulse">...</span>
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Hold devices together. NFC handshake in progress.
+                  </p>
+                  <div className="flex items-center justify-center gap-2 pt-2">
+                    <Loader2 className="w-3.5 h-3.5 text-accent-crimson-light animate-spin" />
+                    <span className="text-[10px] text-accent-crimson-light/70 uppercase tracking-wider font-semibold">
+                      Scanning proximity field
+                    </span>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
