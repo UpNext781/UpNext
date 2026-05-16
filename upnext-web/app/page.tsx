@@ -26,6 +26,7 @@ import {
   Zap,
   ArrowRight,
   Search,
+  X,
   Utensils,
   CircleDot,
   Flame,
@@ -163,6 +164,7 @@ interface PublicPortalProps {
 }
 
 function PublicPortal({ syncWithYantra, isLoading }: PublicPortalProps) {
+  const [heroSearch, setHeroSearch] = useState('');
   const [conciergeForm, setConciergeForm] = useState({
     date: '',
     tableType: '',
@@ -178,7 +180,7 @@ function PublicPortal({ syncWithYantra, isLoading }: PublicPortalProps) {
 
   return (
     <div className="space-y-10">
-      {/* Main Stage Marquee - Cinematic Hero */}
+      {/* Main Stage Marquee - Cinematic Hero with Omni-Search */}
       <section className="relative overflow-hidden rounded-2xl marquee-border -mx-4 md:-mx-8">
         <div className="absolute inset-0">
           <Image
@@ -190,33 +192,56 @@ function PublicPortal({ syncWithYantra, isLoading }: PublicPortalProps) {
         </div>
         <div className="absolute inset-0 bg-gradient-to-br from-accent-crimson/30 via-background/85 to-accent-gold/15"></div>
         <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/40"></div>
-        <div className="relative glass-card-glow p-10 md:p-20 lg:p-28 text-center">
+        <div className="relative glass-card-glow p-10 md:p-16 lg:p-24 text-center">
           <div className="max-w-4xl mx-auto">
             <p className="text-[10px] md:text-xs font-bold uppercase tracking-[0.4em] text-accent-gold mb-6 md:mb-8">
               Phoenix&apos;s Premier Entertainment Network
             </p>
-            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-display font-bold italic text-foreground mb-8 md:mb-10 leading-none">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-display font-bold italic text-foreground mb-6 md:mb-8 leading-none">
               <span className="text-gold-gradient">Elevate</span> Your Evening
             </h1>
-            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 md:mb-14 leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl text-muted-foreground max-w-3xl mx-auto mb-10 md:mb-14 leading-relaxed">
               Exclusive access to Arizona&apos;s most distinguished hospitality specialists. 
-              Reserve premium table placements and bespoke entertainment experiences.
+              Search by name, look, vibe, or venue to find your perfect match instantly.
             </p>
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button className="btn-gold px-10 py-5 rounded-xl text-sm md:text-base flex items-center gap-3 neon-gold">
-                <Wine className="w-5 h-5" />
-                Reserve VIP Experience
-                <ArrowRight className="w-5 h-5" />
-              </button>
-              <button className="px-10 py-5 rounded-xl text-sm md:text-base font-semibold text-muted-foreground hover:text-foreground border border-border hover:border-accent-gold/30 transition-all">
-                Browse the Roster
-              </button>
+
+            {/* Hero Omni-Search Bar */}
+            <div className="max-w-2xl mx-auto">
+              <div className="relative">
+                <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-accent-gold/40 via-accent-crimson/25 to-accent-gold/40 blur-sm animate-pulse"></div>
+                <div className="relative rounded-2xl bg-surface/80 backdrop-blur-xl border-2 border-accent-gold/30 p-1.5 shadow-[0_0_80px_rgba(201,162,39,0.2)]">
+                  <div className="flex items-center gap-4 px-6 py-5">
+                    <Search className="w-6 h-6 text-accent-gold flex-shrink-0" />
+                    <input
+                      type="text"
+                      value={heroSearch}
+                      onChange={(e) => setHeroSearch(e.target.value)}
+                      placeholder="Try 'petite redhead', 'VIP lounge host', 'exotic stage performer'..."
+                      className="flex-1 bg-transparent text-lg md:text-xl text-foreground focus:outline-none placeholder:text-muted-foreground/40"
+                    />
+                    {heroSearch && (
+                      <button
+                        onClick={() => setHeroSearch('')}
+                        className="text-muted-foreground hover:text-foreground transition-colors"
+                      >
+                        <X className="w-5 h-5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground/50 mt-4 tracking-wide">
+                Search across 100 specialists by name, hair color, build, vibe style, or venue
+              </p>
             </div>
           </div>
         </div>
       </section>
 
-      {/* VIP Concierge Portal */}
+      {/* Intelligent Talent Discovery Engine (immediately after hero) */}
+      <TalentDiscoveryEngine syncWithYantra={syncWithYantra} externalSearchQuery={heroSearch} onSearchChange={setHeroSearch} />
+
+      {/* VIP Concierge Portal (pushed below the fold) */}
       <section className="glass-card p-6 md:p-8">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-10 h-10 rounded-xl bg-accent-gold/15 flex items-center justify-center">
@@ -319,11 +344,8 @@ function PublicPortal({ syncWithYantra, isLoading }: PublicPortalProps) {
         </div>
       </section>
 
-      {/* The Vibe Matcher - Interactive Quiz */}
+      {/* The Vibe Matcher - Interactive Quiz (below the fold) */}
       <VibeMatcher syncWithYantra={syncWithYantra} />
-
-      {/* Intelligent Talent Discovery Engine */}
-      <TalentDiscoveryEngine syncWithYantra={syncWithYantra} />
 
       {/* The City Grid: Venue Directory */}
       <VenueDirectory />

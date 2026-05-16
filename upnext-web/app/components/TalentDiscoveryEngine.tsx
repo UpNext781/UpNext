@@ -43,6 +43,8 @@ interface TalentProfile {
 
 interface TalentDiscoveryProps {
   syncWithYantra: (action: string, payload: Record<string, unknown>) => Promise<{ success: boolean }>;
+  externalSearchQuery?: string;
+  onSearchChange?: (query: string) => void;
 }
 
 // ============================================
@@ -318,107 +320,23 @@ const TIER_COLORS: Record<TalentProfile['tier'], { bg: string; text: string; bor
 // MAIN COMPONENT
 // ============================================
 
-export default function TalentDiscoveryEngine({ syncWithYantra }: TalentDiscoveryProps) {
-  const [searchQuery, setSearchQuery] = useState('');
+export default function TalentDiscoveryEngine({ syncWithYantra, externalSearchQuery, onSearchChange }: TalentDiscoveryProps) {
   const [selectedProfile, setSelectedProfile] = useState<TalentProfile | null>(null);
   const [activeGalleryTab, setActiveGalleryTab] = useState(0);
   const [isBooking, setIsBooking] = useState(false);
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const [visibleCount, setVisibleCount] = useState(12);
 
-  // First Contact overlay state
-  const [showOverlay, setShowOverlay] = useState(false);
-  const [overlayExiting, setOverlayExiting] = useState(false);
-  const [isDocked, setIsDocked] = useState(false);
-  const [typingPlaceholder, setTypingPlaceholder] = useState('');
-  const overlayInputRef = useRef<HTMLInputElement>(null);
-  const dockedInputRef = useRef<HTMLInputElement>(null);
-  const sessionChecked = useRef(false);
+  // Use external search query from hero bar, or fallback to local state
+  const searchQuery = externalSearchQuery ?? '';
+  const rosterRef = useRef<HTMLDivElement>(null);
 
-  // Session state: only show overlay once per session
+  // Auto-scroll to roster when search is active
   useEffect(() => {
-    if (sessionChecked.current) return;
-    sessionChecked.current = true;
-    const hasSeenOverlay = sessionStorage.getItem('upnext_first_contact_seen');
-    if (!hasSeenOverlay) {
-      setShowOverlay(true);
-      sessionStorage.setItem('upnext_first_contact_seen', 'true');
-    } else {
-      setIsDocked(true);
+    if (searchQuery.length > 0 && rosterRef.current) {
+      rosterRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
-  }, []);
-
-  // Typewriter effect for placeholder
-  useEffect(() => {
-    if (!showOverlay || overlayExiting) return;
-
-    const phrases = [
-      "Try 'petite redhead'",
-      "Try 'high-energy alternative'",
-      "Try 'VIP lounge host'",
-      "Try 'classy brunette'",
-      "Try 'exotic stage performer'"
-    ];
-
-    let phraseIndex = 0;
-    let charIndex = 0;
-    let isDeleting = false;
-    let timeoutId: ReturnType<typeof setTimeout>;
-
-    const type = () => {
-      const currentPhrase = phrases[phraseIndex];
-
-      if (!isDeleting) {
-        setTypingPlaceholder(currentPhrase.slice(0, charIndex + 1));
-        charIndex++;
-
-        if (charIndex === currentPhrase.length) {
-          isDeleting = true;
-          timeoutId = setTimeout(type, 2000);
-          return;
-        }
-        timeoutId = setTimeout(type, 60);
-      } else {
-        setTypingPlaceholder(currentPhrase.slice(0, charIndex - 1));
-        charIndex--;
-
-        if (charIndex === 0) {
-          isDeleting = false;
-          phraseIndex = (phraseIndex + 1) % phrases.length;
-          timeoutId = setTimeout(type, 400);
-          return;
-        }
-        timeoutId = setTimeout(type, 30);
-      }
-    };
-
-    const startDelay = setTimeout(() => type(), 800);
-
-    return () => {
-      clearTimeout(startDelay);
-      clearTimeout(timeoutId);
-    };
-  }, [showOverlay, overlayExiting]);
-
-  // Dock the overlay
-  const triggerDocking = useCallback(() => {
-    setOverlayExiting(true);
-    setTimeout(() => {
-      setShowOverlay(false);
-      setOverlayExiting(false);
-      setIsDocked(true);
-      // Focus the docked input after transition
-      setTimeout(() => dockedInputRef.current?.focus(), 100);
-    }, 700);
-  }, []);
-
-  // Handle overlay search input
-  const handleOverlayInput = useCallback((value: string) => {
-    setSearchQuery(value);
-    if (value.length >= 1) {
-      triggerDocking();
-    }
-  }, [triggerDocking]);
+  }, [searchQuery]);
 
   // Live client-side filtering
   const filteredProfiles = useMemo(() => {
@@ -502,137 +420,66 @@ export default function TalentDiscoveryEngine({ syncWithYantra }: TalentDiscover
   }, [syncWithYantra]);
 
   const handleSearchInput = useCallback(async (value: string) => {
-    setSearchQuery(value);
+    if (onSearchChange) onSearchChange(value);
     setVisibleCount(12);
     if (value.length > 2) {
       syncWithYantra('search_query', { query: value, timestamp: new Date().toISOString() });
     }
-  }, [syncWithYantra]);
+  }, [syncWithYantra, onSearchChange]);
 
   return (
-    <>
-      {/* ========================================== */}
-      {/* FIRST CONTACT OVERLAY                      */}
-      {/* ========================================== */}
-      {showOverlay && (
-        <div
-          className={`fixed inset-0 z-[60] flex items-center justify-center p-6 transition-all duration-700 ${
-            overlayExiting ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
-          }`}
-          style={{ animation: !overlayExiting ? 'first-contact-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1)' : undefined }}
-        >
-          {/* Dimmed backdrop */}
-          <div className="absolute inset-0 bg-black/90 backdrop-blur-xl"></div>
-
-          <div className={`relative w-full max-w-3xl space-y-8 transition-all duration-700 ${
-            overlayExiting ? 'translate-y-8 opacity-0 scale-90' : ''
-          }`}>
-            {/* Decorative glow */}
-            <div className="absolute -inset-20 bg-gradient-to-r from-accent-gold/5 via-accent-crimson/5 to-accent-gold/5 rounded-full blur-3xl pointer-events-none"></div>
-
-            {/* Heading */}
-            <div className="relative text-center">
-              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent-gold/10 border border-accent-gold/20 text-accent-gold text-xs font-bold uppercase tracking-[0.2em] mb-6">
-                <Sparkles className="w-3.5 h-3.5" />
-                Intelligent Matching Engine
-              </div>
-              <h2 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold italic text-foreground leading-tight text-balance">
-                Who Clear-Cuts Your Night? <span className="text-accent-gold">//</span>{' '}
-                <span className="text-gold-gradient">Find Your Perfect Match Instantly.</span>
-              </h2>
-            </div>
-
-            {/* Oversized Search Bar */}
-            <div className="relative">
-              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-accent-gold/30 via-accent-crimson/20 to-accent-gold/30 blur-sm animate-pulse"></div>
-              <div className="relative rounded-2xl bg-surface/90 backdrop-blur-xl border border-accent-gold/30 p-2 shadow-[0_0_60px_rgba(201,162,39,0.15)]">
-                <div className="flex items-center gap-4 px-5 py-4">
-                  <Search className="w-6 h-6 text-accent-gold flex-shrink-0" />
-                  <input
-                    ref={overlayInputRef}
-                    type="text"
-                    value={searchQuery}
-                    onChange={(e) => handleOverlayInput(e.target.value)}
-                    onClick={() => overlayInputRef.current?.focus()}
-                    placeholder={typingPlaceholder || "Search by name, look, vibe, venue..."}
-                    className="flex-1 bg-transparent text-lg md:text-xl text-foreground focus:outline-none placeholder:text-muted-foreground/40"
-                    autoFocus
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Skip Link */}
-            <div className="text-center">
-              <button
-                onClick={triggerDocking}
-                className="text-sm text-muted-foreground/60 hover:text-accent-gold transition-colors underline underline-offset-4"
-              >
-                Skip to Full Roster
-              </button>
-            </div>
+    <section ref={rosterRef} className="space-y-6 scroll-mt-6">
+      {/* Section Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-accent-crimson/15 flex items-center justify-center">
+            <Zap className="w-5 h-5 text-accent-crimson-light" />
           </div>
-        </div>
-      )}
-
-      {/* ========================================== */}
-      {/* MAIN SECTION (docked state)                */}
-      {/* ========================================== */}
-      <section className={`space-y-6 transition-all duration-700 ${isDocked ? 'opacity-100 translate-y-0' : 'opacity-40'}`}>
-        {/* Section Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-accent-crimson/15 flex items-center justify-center">
-              <Zap className="w-5 h-5 text-accent-crimson-light" />
-            </div>
-            <div>
-              <h2 className="text-lg font-display font-bold italic text-foreground">
-                Intelligent Talent Discovery
-              </h2>
-              <p className="text-xs text-muted-foreground">
-                {ALL_PROFILES.length} specialists in the Phoenix network
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span>{ALL_PROFILES.filter(p => p.status === 'live').length} Live Now</span>
-          </div>
-        </div>
-
-        {/* Docked Omni-Search Bar */}
-        <div className={`glass-card-glow p-5 md:p-6 space-y-4 transition-all duration-700 ${
-          isDocked ? 'ring-1 ring-accent-gold/10' : ''
-        }`}>
-          <p className="text-xs font-bold uppercase tracking-[0.15em] text-accent-gold">
-            Find Your Ideal Specialist
-          </p>
-          <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-            <input
-              ref={dockedInputRef}
-              type="text"
-              value={searchQuery}
-              onChange={(e) => handleSearchInput(e.target.value)}
-              placeholder="Try typing tags like 'petite redhead', 'high-energy alternative', 'classy lounge vip', or 'bilingual'..."
-              className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface border border-border text-foreground text-sm focus:outline-none focus:border-accent-gold/50 focus:shadow-[0_0_20px_rgba(201,162,39,0.1)] transition-all placeholder:text-muted-foreground/60"
-            />
-            {searchQuery && (
-              <button
-                onClick={() => { setSearchQuery(''); setVisibleCount(12); }}
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-              >
-                <X className="w-4 h-4" />
-              </button>
-            )}
-          </div>
-          {searchQuery && (
+          <div>
+            <h2 className="text-lg font-display font-bold italic text-foreground">
+              Intelligent Talent Discovery
+            </h2>
             <p className="text-xs text-muted-foreground">
-              Showing <span className="text-accent-gold font-semibold">{filteredProfiles.length}</span> results
-              for &ldquo;<span className="text-foreground">{searchQuery}</span>&rdquo;
+              {ALL_PROFILES.length} specialists in the Phoenix network
             </p>
+          </div>
+        </div>
+        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span>{ALL_PROFILES.filter(p => p.status === 'live').length} Live Now</span>
+        </div>
+      </div>
+
+      {/* Docked Omni-Search Bar (mirrors hero, stays in sync) */}
+      <div className="glass-card-glow p-5 md:p-6 space-y-4 ring-1 ring-accent-gold/10">
+        <p className="text-xs font-bold uppercase tracking-[0.15em] text-accent-gold">
+          Find Your Ideal Specialist
+        </p>
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => handleSearchInput(e.target.value)}
+            placeholder="Filter by name, look, vibe, venue..."
+            className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface border border-border text-foreground text-sm focus:outline-none focus:border-accent-gold/50 focus:shadow-[0_0_20px_rgba(201,162,39,0.1)] transition-all placeholder:text-muted-foreground/60"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => { if (onSearchChange) onSearchChange(''); setVisibleCount(12); }}
+              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <X className="w-4 h-4" />
+            </button>
           )}
         </div>
+        {searchQuery && (
+          <p className="text-xs text-muted-foreground">
+            Showing <span className="text-accent-gold font-semibold">{filteredProfiles.length}</span> results
+            for &ldquo;<span className="text-foreground">{searchQuery}</span>&rdquo;
+          </p>
+        )}
+      </div>
 
         {/* Profile Roster Grid */}
         {filteredProfiles.length > 0 && (
@@ -704,7 +551,6 @@ export default function TalentDiscoveryEngine({ syncWithYantra }: TalentDiscover
           />
         )}
       </section>
-    </>
   );
 }
 
