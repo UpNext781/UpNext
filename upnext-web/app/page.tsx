@@ -29,7 +29,12 @@ import {
   Sofa,
   Radio,
   Crown,
-  Target
+  Target,
+  Wand2,
+  RefreshCw,
+  Lock,
+  ShieldCheck,
+  ImageIcon
 } from 'lucide-react';
 
 type PortalMode = 'public' | 'operator';
@@ -1135,6 +1140,9 @@ function OperatorApp({ syncWithYantra, isLoading }: OperatorAppProps) {
         </div>
       </div>
 
+      {/* Shift Deployment & Broadcast Central */}
+      <BroadcastCentral syncWithYantra={syncWithYantra} discretionMode={discretionMode} />
+
       {/* Availability Matrix */}
       <div className="glass-card p-5 md:p-6">
         <div className="flex items-center gap-3 mb-5">
@@ -1149,6 +1157,287 @@ function OperatorApp({ syncWithYantra, isLoading }: OperatorAppProps) {
           onToggle={toggleAvailability}
           disabled={isLoading}
         />
+      </div>
+    </div>
+  );
+}
+
+// ============================================
+// BROADCAST CENTRAL COMPONENT
+// "Shift Deployment & Broadcast Central"
+// AI content generation + OPSEC asset management
+// ============================================
+
+type VibeMood = 'sophisticated' | 'playful' | 'mystic' | null;
+type BroadcastPhase = 'idle' | 'tokenizing' | 'deployed';
+
+interface BroadcastCentralProps {
+  syncWithYantra: (action: string, payload: Record<string, unknown>) => Promise<{ success: boolean }>;
+  discretionMode: boolean;
+}
+
+const VIBE_PRESETS: Record<Exclude<VibeMood, null>, { label: string; description: string; preview: string }> = {
+  sophisticated: {
+    label: 'Sophisticated',
+    description: 'Refined, exclusive, corporate-safe tone',
+    preview: 'Your priority allocation window for tonight is now open. Review your private reservation itinerary: upnext.dev/t/x9k3'
+  },
+  playful: {
+    label: 'Playful',
+    description: 'Energetic, casual, weekend-ready tone',
+    preview: 'The weekend layout just dropped early. Your entry credential and seating are waiting inside: upnext.dev/t/x9k3'
+  },
+  mystic: {
+    label: 'Mystic',
+    description: 'Mysterious, exclusive, FOMO-driven tone',
+    preview: "Tonight\u2019s line is locked. The deck clears at midnight\u2014unlock your special invitation details: upnext.dev/t/x9k3"
+  }
+};
+
+const ASSET_PORTFOLIO = [
+  { id: 'a1', src: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop&crop=face', label: 'Studio A', lastUsed: null, isActive: false },
+  { id: 'a2', src: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=200&h=200&fit=crop&crop=face', label: 'Glam Set', lastUsed: 'Shift -1', isActive: false },
+  { id: 'a3', src: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=200&h=200&fit=crop&crop=face', label: 'VIP Shoot', lastUsed: null, isActive: true },
+  { id: 'a4', src: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=200&h=200&fit=crop&crop=face', label: 'Lounge', lastUsed: 'Shift -2', isActive: false },
+  { id: 'a5', src: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=200&h=200&fit=crop&crop=face', label: 'Stage Look', lastUsed: 'Shift -3', isActive: false },
+  { id: 'a6', src: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=200&h=200&fit=crop&crop=face', label: 'Editorial', lastUsed: null, isActive: false },
+];
+
+function BroadcastCentral({ syncWithYantra, discretionMode }: BroadcastCentralProps) {
+  const [selectedMood, setSelectedMood] = useState<VibeMood>(null);
+  const [selectedAsset, setSelectedAsset] = useState<string>('a3');
+  const [broadcastPhase, setBroadcastPhase] = useState<BroadcastPhase>('idle');
+  const [isSyncing, setIsSyncing] = useState(false);
+
+  const handleSelectAsset = (assetId: string) => {
+    setSelectedAsset(assetId);
+  };
+
+  const handleSyncCatalog = async () => {
+    setIsSyncing(true);
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    setIsSyncing(false);
+  };
+
+  const handleBroadcast = async () => {
+    if (!selectedMood || !selectedAsset) return;
+    
+    setBroadcastPhase('tokenizing');
+    
+    // Assemble the payload
+    const payload = {
+      text_preset: selectedMood,
+      text_content: VIBE_PRESETS[selectedMood].preview,
+      venue_id: 'venue_phoenix_001',
+      asset_id: selectedAsset,
+      timestamp: new Date().toISOString(),
+      discretion_flag: discretionMode
+    };
+
+    await syncWithYantra('broadcast_deploy', payload);
+
+    // Show deployed confirmation
+    setBroadcastPhase('deployed');
+    setTimeout(() => setBroadcastPhase('idle'), 4000);
+  };
+
+  return (
+    <div className="glass-card-glow p-5 md:p-6 space-y-6">
+      {/* Section Header */}
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-lg bg-gradient-to-br from-accent-crimson/20 to-accent-gold/20 flex items-center justify-center">
+            <Send className="w-4 h-4 text-accent-gold" />
+          </div>
+          <div>
+            <h2 className="text-sm font-bold uppercase tracking-[0.15em] text-muted-foreground">Broadcast Central</h2>
+            <p className="text-[10px] uppercase tracking-wider text-muted-foreground/60">Shift Deployment & OPSEC Content</p>
+          </div>
+        </div>
+        <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+          <ShieldCheck className="w-3.5 h-3.5 text-accent-gold" />
+          <span>E2E Cloaked</span>
+        </div>
+      </div>
+
+      {/* 1. AI Vibe Content Generator */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <Wand2 className="w-4 h-4 text-accent-gold" />
+          <p className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">AI Vibe Content Generator</p>
+        </div>
+
+        {/* Mood Selector */}
+        <div className="grid grid-cols-3 gap-3">
+          {(Object.entries(VIBE_PRESETS) as [Exclude<VibeMood, null>, typeof VIBE_PRESETS[keyof typeof VIBE_PRESETS]][]).map(([mood, preset]) => (
+            <button
+              key={mood}
+              onClick={() => setSelectedMood(mood)}
+              className={`p-4 rounded-xl text-left transition-all ${
+                selectedMood === mood
+                  ? 'bg-accent-gold/15 border-2 border-accent-gold/50 shadow-[0_0_20px_rgba(201,162,39,0.1)]'
+                  : 'bg-surface border border-border hover:border-accent-gold/20'
+              }`}
+            >
+              <p className={`text-sm font-semibold mb-1 ${
+                selectedMood === mood ? 'text-accent-gold' : 'text-foreground'
+              }`}>
+                {preset.label}
+              </p>
+              <p className="text-[10px] text-muted-foreground leading-snug">{preset.description}</p>
+            </button>
+          ))}
+        </div>
+
+        {/* AI Text Preview Card */}
+        {selectedMood && (
+          <div className="relative rounded-xl bg-surface border border-accent-gold/20 p-5 overflow-hidden">
+            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-accent-gold/40 to-transparent"></div>
+            <div className="flex items-center gap-2 mb-3">
+              <Lock className="w-3.5 h-3.5 text-accent-gold" />
+              <p className="text-[10px] uppercase tracking-[0.2em] text-accent-gold font-bold">Lock-Screen Safe Preview</p>
+            </div>
+            <p className={`text-sm leading-relaxed ${discretionMode ? 'blur-sm select-none' : 'text-foreground/90'}`}>
+              {VIBE_PRESETS[selectedMood].preview}
+            </p>
+            <div className="mt-3 flex items-center gap-2 text-[10px] text-muted-foreground/50">
+              <ShieldCheck className="w-3 h-3" />
+              <span>No explicit content. No media attachments. Plain text only.</span>
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 2. Smart Asset Revolver Matrix */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ImageIcon className="w-4 h-4 text-accent-crimson-light" />
+            <p className="text-xs font-bold uppercase tracking-[0.15em] text-muted-foreground">Approved Media Portfolio</p>
+          </div>
+          <button 
+            onClick={handleSyncCatalog}
+            disabled={isSyncing}
+            className="flex items-center gap-1.5 text-xs text-accent-gold hover:text-accent-gold-light transition-colors disabled:opacity-50"
+          >
+            <RefreshCw className={`w-3.5 h-3.5 ${isSyncing ? 'animate-spin' : ''}`} />
+            <span>{isSyncing ? 'Syncing...' : 'Sync Catalog'}</span>
+          </button>
+        </div>
+
+        {/* Thumbnail Carousel */}
+        <div className="flex gap-3 overflow-x-auto pb-2 -mx-1 px-1 scrollbar-hide">
+          {ASSET_PORTFOLIO.map((asset) => {
+            const isSelected = selectedAsset === asset.id;
+            const isRecentlyUsed = asset.lastUsed !== null;
+            
+            return (
+              <button
+                key={asset.id}
+                onClick={() => handleSelectAsset(asset.id)}
+                className={`relative flex-none w-24 group transition-all ${
+                  isSelected ? 'scale-105' : 'hover:scale-[1.02]'
+                }`}
+              >
+                {/* Thumbnail */}
+                <div className={`relative w-24 h-24 rounded-xl overflow-hidden ${
+                  isSelected 
+                    ? 'ring-2 ring-accent-gold ring-offset-2 ring-offset-background shadow-[0_0_16px_rgba(201,162,39,0.3)]' 
+                    : 'ring-1 ring-border'
+                }`}>
+                  <Image
+                    src={asset.src}
+                    alt={asset.label}
+                    width={96}
+                    height={96}
+                    className={`w-full h-full object-cover transition-all ${
+                      isRecentlyUsed && !isSelected ? 'opacity-40' : ''
+                    }`}
+                  />
+                  
+                  {/* Recently Used Overlay */}
+                  {isRecentlyUsed && !isSelected && (
+                    <div className="absolute inset-0 bg-background/50 flex items-center justify-center">
+                      <span className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground bg-background/80 px-2 py-1 rounded">
+                        {asset.lastUsed}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Active Choice Badge */}
+                  {isSelected && (
+                    <div className="absolute top-1 right-1 w-5 h-5 rounded-full bg-accent-gold flex items-center justify-center">
+                      <CheckCircle className="w-3 h-3 text-background" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Label */}
+                <p className={`text-[10px] text-center mt-1.5 ${
+                  isSelected ? 'text-accent-gold font-semibold' : 'text-muted-foreground'
+                }`}>
+                  {asset.label}
+                </p>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 3. Secure Launch Command */}
+      <div className="pt-2 border-t border-border space-y-4">
+        {broadcastPhase === 'idle' && (
+          <button
+            onClick={handleBroadcast}
+            disabled={!selectedMood || !selectedAsset}
+            className={`w-full py-4 rounded-xl font-bold text-sm flex items-center justify-center gap-3 transition-all ${
+              selectedMood && selectedAsset
+                ? 'btn-crimson shadow-[0_0_30px_rgba(165,42,42,0.3)] hover:shadow-[0_0_40px_rgba(165,42,42,0.4)]'
+                : 'bg-surface-elevated text-muted-foreground border border-border cursor-not-allowed'
+            }`}
+          >
+            <Lock className="w-4 h-4" />
+            Secure Link & Broadcast Blast
+          </button>
+        )}
+
+        {broadcastPhase === 'tokenizing' && (
+          <div className="w-full py-6 rounded-xl bg-surface border border-accent-crimson/30 flex flex-col items-center gap-4">
+            <div className="relative">
+              <div className="w-12 h-12 rounded-full border-2 border-accent-crimson/40 flex items-center justify-center">
+                <div className="w-9 h-9 rounded-full border-2 border-accent-gold/50 border-t-accent-crimson animate-spin"></div>
+              </div>
+            </div>
+            <div className="text-center">
+              <p className="text-xs font-bold uppercase tracking-[0.25em] text-accent-crimson-light mb-1">
+                Tokenizing Secure Gateway Link...
+              </p>
+              <p className="text-[10px] text-muted-foreground">Encrypting payload & generating cloaked redirect</p>
+            </div>
+            {/* Progress bar animation */}
+            <div className="w-48 h-1 rounded-full bg-surface-elevated overflow-hidden">
+              <div className="h-full bg-gradient-to-r from-accent-crimson to-accent-gold rounded-full animate-[broadcast-progress_2s_ease-in-out]" 
+                   style={{ animation: 'broadcast-progress 1.5s ease-in-out forwards' }}></div>
+            </div>
+          </div>
+        )}
+
+        {broadcastPhase === 'deployed' && (
+          <div className="w-full py-5 rounded-xl bg-accent-gold/10 border border-accent-gold/30 flex items-center justify-center gap-3">
+            <CheckCircle className="w-5 h-5 text-accent-gold" />
+            <div>
+              <p className="text-sm font-bold text-accent-gold">Discreet Campaign Deployed Successfully</p>
+              <p className="text-[10px] text-muted-foreground">Outbound Notification Cloaked</p>
+            </div>
+          </div>
+        )}
+
+        {/* Status Summary */}
+        <div className="flex items-center justify-between text-[10px] text-muted-foreground/50">
+          <span>Mood: {selectedMood ? VIBE_PRESETS[selectedMood].label : 'Not Set'}</span>
+          <span>Asset: {selectedAsset || 'None'}</span>
+          <span>Pipeline: E2E Encrypted</span>
+        </div>
       </div>
     </div>
   );
