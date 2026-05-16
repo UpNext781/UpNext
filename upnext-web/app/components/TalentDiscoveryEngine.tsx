@@ -46,10 +46,52 @@ interface TalentDiscoveryProps {
 }
 
 // ============================================
-// PORTRAIT IMAGE POOL (Unsplash)
+// PORTRAIT IMAGE POOL (Unsplash - verified female only)
+// Organized by archetype for intentional mapping
 // ============================================
 
-const PORTRAIT_POOL = [
+// Each sub-pool maps to an aesthetic archetype
+const PORTRAITS_BY_ARCHETYPE: Record<string, string[]> = {
+  'petite-redhead': [
+    'photo-1494790108377-be9c29b29330',  // warm redhead portrait
+    'photo-1502823403499-6ccfcf4fb453',  // soft auburn close-up
+    'photo-1596815064285-45ed8a9c0463',  // red-haired woman smiling
+    'photo-1589571894960-20bbe2828d0a',  // ginger portrait natural light
+  ],
+  'high-energy-alternative': [
+    'photo-1531746020798-e6953c6e8e04',  // bold editorial female
+    'photo-1515886657613-9f3515b0c78f',  // fashion-forward woman
+    'photo-1529626455594-4ff0802cfb7e',  // confident dark-hair editorial
+    'photo-1496440737103-cd596325d314',  // striking high-fashion woman
+  ],
+  'classy-lounge-vip': [
+    'photo-1534528741775-53994a69daeb',  // elegant studio portrait
+    'photo-1524504388940-b1c1722653e1',  // sophisticated poised woman
+    'photo-1544005313-94ddf0286df2',     // refined natural beauty
+    'photo-1488426862026-3ee34a7d66df',  // soft classic beauty
+  ],
+  'exotic': [
+    'photo-1517841905240-472988babdf9',  // radiant warm-toned beauty
+    'photo-1489424731084-a5d8b219a5bb',  // luminous dark-eyed portrait
+    'photo-1503185912284-5271ff81b9a8',  // warm complexion close-up
+    'photo-1509967419530-da38b4704bc6',  // striking international look
+  ],
+  'sultry': [
+    'photo-1438761681033-6461ffad8d80',  // soft smoky portrait
+    'photo-1563306406-e66174fa3787',     // intimate warm lighting
+    'photo-1557862921-37829c790f19',     // dramatic close-up
+    'photo-1491349174775-aaafddd81942',  // moody beauty portrait
+  ],
+  'girl-next-door': [
+    'photo-1508214751196-bcfd4ca60f91',  // approachable bright smile
+    'photo-1499887142886-791eca5918cd',  // natural golden-hour beauty
+    'photo-1506956191951-7a88da4435e5',  // genuine warm expression
+    'photo-1551292831-023188e78222',     // fresh casual portrait
+  ],
+};
+
+// Flat pool for gallery variety (all verified female)
+const ALL_FEMALE_PORTRAITS = [
   'photo-1534528741775-53994a69daeb',
   'photo-1524504388940-b1c1722653e1',
   'photo-1517841905240-472988babdf9',
@@ -57,44 +99,76 @@ const PORTRAIT_POOL = [
   'photo-1529626455594-4ff0802cfb7e',
   'photo-1494790108377-be9c29b29330',
   'photo-1531746020798-e6953c6e8e04',
-  'photo-1507003211169-0a1dd7228f2d',
-  'photo-1502823403499-6ccfcf4fb453',
-  'photo-1514315384763-ba401779410f',
   'photo-1544005313-94ddf0286df2',
   'photo-1438761681033-6461ffad8d80',
   'photo-1489424731084-a5d8b219a5bb',
   'photo-1496440737103-cd596325d314',
   'photo-1515886657613-9f3515b0c78f',
-  'photo-1521146764736-56c929d59c83',
-  'photo-1519125323398-675f0ddb6308',
+  'photo-1502823403499-6ccfcf4fb453',
   'photo-1503185912284-5271ff81b9a8',
   'photo-1509967419530-da38b4704bc6',
-  'photo-1506277886164-e25aa3f4ef7f',
+  'photo-1508214751196-bcfd4ca60f91',
+  'photo-1499887142886-791eca5918cd',
+  'photo-1506956191951-7a88da4435e5',
+  'photo-1551292831-023188e78222',
+  'photo-1563306406-e66174fa3787',
+  'photo-1557862921-37829c790f19',
+  'photo-1491349174775-aaafddd81942',
+  'photo-1596815064285-45ed8a9c0463',
+  'photo-1589571894960-20bbe2828d0a',
+  'photo-1487412720507-e7ab37603c6f',
+  'photo-1464863979621-258859e62245',
+  'photo-1485875437517-e8da2edae70f',
+  'photo-1524638431109-93d95c968f03',
+  'photo-1542596768-5d1d21f1cf98',
+  'photo-1484399172022-72a90b12e3c1',
 ];
 
-const getPortraitUrl = (id: number, size = 400) => {
-  const photo = PORTRAIT_POOL[id % PORTRAIT_POOL.length];
+// Maps archetype key to index for portrait lookup
+const ARCHETYPE_KEYS = Object.keys(PORTRAITS_BY_ARCHETYPE);
+
+const getArchetypeForVibe = (vibeStyle: string): string => {
+  const map: Record<string, string> = {
+    'Petite Redhead Firecracker': 'petite-redhead',
+    'High-Energy Showstopper': 'high-energy-alternative',
+    'Classy Lounge VIP': 'classy-lounge-vip',
+    'Exotic Stage Performer': 'exotic',
+    'Sultry Conversationalist': 'sultry',
+    'Girl-Next-Door Charm': 'girl-next-door',
+  };
+  return map[vibeStyle] || 'classy-lounge-vip';
+};
+
+const getPortraitUrl = (id: number, vibeStyle: string, size = 400) => {
+  const archetype = getArchetypeForVibe(vibeStyle);
+  const pool = PORTRAITS_BY_ARCHETYPE[archetype];
+  const photo = pool[id % pool.length];
   return `https://images.unsplash.com/${photo}?w=${size}&h=${size}&fit=crop&crop=face`;
 };
 
-const getGalleryUrls = (id: number): string[] => {
-  const base = id % PORTRAIT_POOL.length;
-  return [0, 1, 2, 3].map(offset => {
-    const photo = PORTRAIT_POOL[(base + offset) % PORTRAIT_POOL.length];
-    return `https://images.unsplash.com/${photo}?w=800&h=1000&fit=crop&crop=face`;
-  });
+const getGalleryUrls = (id: number, vibeStyle: string): string[] => {
+  const archetype = getArchetypeForVibe(vibeStyle);
+  const archetypePool = PORTRAITS_BY_ARCHETYPE[archetype];
+  // Primary from archetype, rest from general pool for variety
+  return [
+    `https://images.unsplash.com/${archetypePool[id % archetypePool.length]}?w=800&h=1000&fit=crop&crop=face`,
+    `https://images.unsplash.com/${ALL_FEMALE_PORTRAITS[(id * 3) % ALL_FEMALE_PORTRAITS.length]}?w=800&h=1000&fit=crop&crop=face`,
+    `https://images.unsplash.com/${ALL_FEMALE_PORTRAITS[(id * 7 + 5) % ALL_FEMALE_PORTRAITS.length]}?w=800&h=1000&fit=crop&crop=face`,
+    `https://images.unsplash.com/${ALL_FEMALE_PORTRAITS[(id * 11 + 9) % ALL_FEMALE_PORTRAITS.length]}?w=800&h=1000&fit=crop&crop=face`,
+  ];
 };
 
 // ============================================
 // PROGRAMMATIC PROFILE DATABASE (100 profiles)
+// All female talent archetypes
 // ============================================
 
 const STAGE_NAMES = [
   'Aria Luxe', 'Nova Sterling', 'Jade Velvet', 'Sable Reign', 'Ruby Onyx',
-  'Luna Frost', 'Ember Blaze', 'Ivy Noir', 'Diamond Dior', 'Scarlett Vice',
+  'Luna Frost', 'Ember Rose', 'Ivy Noir', 'Diamond Dior', 'Scarlett Vice',
   'Aurora Gold', 'Cleo Jewel', 'Venus Storm', 'Raven Silk', 'Pearl Elise',
   'Zara Phoenix', 'Mila Rouge', 'Giselle Noir', 'Carmen Elite', 'Dahlia Moon',
-  'Sadie Lux', 'Romy Vale', 'Harlow James', 'Eden Monroe', 'Freya Cole',
+  'Sadie Lux', 'Romy Vale', 'Harlow Grace', 'Eden Monroe', 'Freya Cole',
   'Nyx Shadow', 'Layla Sterling', 'Willow Hart', 'Sage Devereaux', 'Blair Reign',
   'Celeste Cruz', 'Valentina Rose', 'Maren Stone', 'Thalia Bloom', 'Kira Vex',
   'Anya Slate', 'Brynn Adler', 'Delphine Lux', 'Esme Graves', 'Fable Quinn',
@@ -112,56 +186,105 @@ const STAGE_NAMES = [
   'Jessamine Lux', 'Kaia Sterling', 'Lyric Ash', 'Meadow Reign', 'Neve Storm'
 ];
 
-const HAIR_COLORS = ['Platinum Blonde', 'Brunette', 'Raven Black', 'Auburn Red', 'Honey Blonde', 'Copper', 'Jet Black', 'Strawberry Blonde', 'Chestnut', 'Silver'];
-const BUILDS = ['Petite', 'Athletic', 'Curvy', 'Slim', 'Toned', 'Statuesque'];
-const VIBE_STYLES = ['High-Energy Showstopper', 'Classy Lounge VIP', 'Exotic Stage Performer', 'Sultry Conversationalist', 'Alternative Edge', 'Girl-Next-Door Charm'];
+// Hair colors mapped intentionally to archetypes
+const ARCHETYPE_HAIR: Record<string, string[]> = {
+  'Petite Redhead Firecracker': ['Auburn Red', 'Copper', 'Strawberry Blonde', 'Ginger'],
+  'High-Energy Showstopper': ['Platinum Blonde', 'Jet Black', 'Silver', 'Honey Blonde'],
+  'Classy Lounge VIP': ['Brunette', 'Chestnut', 'Honey Blonde', 'Caramel'],
+  'Exotic Stage Performer': ['Raven Black', 'Jet Black', 'Dark Chestnut', 'Espresso'],
+  'Sultry Conversationalist': ['Brunette', 'Auburn Red', 'Dark Honey', 'Mahogany'],
+  'Girl-Next-Door Charm': ['Honey Blonde', 'Light Brunette', 'Strawberry Blonde', 'Sandy Blonde'],
+};
+
+const ARCHETYPE_BUILDS: Record<string, string[]> = {
+  'Petite Redhead Firecracker': ['Petite', 'Slim', 'Petite', 'Petite'],
+  'High-Energy Showstopper': ['Athletic', 'Toned', 'Statuesque', 'Athletic'],
+  'Classy Lounge VIP': ['Slim', 'Toned', 'Statuesque', 'Slim'],
+  'Exotic Stage Performer': ['Athletic', 'Curvy', 'Toned', 'Statuesque'],
+  'Sultry Conversationalist': ['Curvy', 'Slim', 'Toned', 'Curvy'],
+  'Girl-Next-Door Charm': ['Petite', 'Athletic', 'Slim', 'Toned'],
+};
+
+const ARCHETYPE_TAGS: Record<string, string[]> = {
+  'Petite Redhead Firecracker': ['petite', 'redhead', 'fiery', 'intimate', 'private-events', 'conversationalist'],
+  'High-Energy Showstopper': ['high-energy', 'showstopper', 'main-stage', 'athletic', 'crowd-favorite', 'performer'],
+  'Classy Lounge VIP': ['classy', 'lounge', 'vip', 'elegant', 'sophisticated', 'bottle-service'],
+  'Exotic Stage Performer': ['exotic', 'stage', 'performer', 'international', 'bilingual', 'captivating'],
+  'Sultry Conversationalist': ['sultry', 'conversationalist', 'intimate', 'alluring', 'private-booth', 'engaging'],
+  'Girl-Next-Door Charm': ['girl-next-door', 'approachable', 'charming', 'natural', 'fun', 'bubbly'],
+};
+
+const VIBE_STYLES = [
+  'Petite Redhead Firecracker',
+  'High-Energy Showstopper',
+  'Classy Lounge VIP',
+  'Exotic Stage Performer',
+  'Sultry Conversationalist',
+  'Girl-Next-Door Charm',
+];
+
 const VENUES = ["Christie's Cabaret Tempe", "Le Girls West Valley", "Bourbon Street Central PHX", "Skin Scottsdale", "Babe's Cabaret", "Hi-Liter"];
 const TIERS: TalentProfile['tier'][] = ['Diamond', 'Platinum', 'Gold', 'Silver'];
-const HEIGHTS = ["5'1\"", "5'2\"", "5'3\"", "5'4\"", "5'5\"", "5'6\"", "5'7\"", "5'8\"", "5'9\"", "5'10\"", "5'11\""];
+const HEIGHTS = ["5'1\"", "5'2\"", "5'3\"", "5'4\"", "5'5\"", "5'6\"", "5'7\"", "5'8\"", "5'9\"", "5'10\""];
 
-const BIOS = [
-  'Captivating stage presence with elite VIP hosting credentials. Specializes in high-end bottle service environments.',
-  'A magnetic performer who commands every room. Known for sophisticated conversation and premium client retention.',
-  'High-fashion trained with runway experience. Brings editorial elegance to the nightlife floor.',
-  'Versatile entertainer with a loyal following. Excels in both main stage rotations and private lounge settings.',
-  'Bilingual specialist with international appeal. Preferred choice for corporate entertainment bookings.',
-  'Award-winning performer with an unmatched stage routine. Consistently ranks in top-tier earnings brackets.',
-  'Former fitness model bringing athletic grace to every performance. A client favorite for VIP sections.',
-  'Classically trained dancer with contemporary flair. Known for immersive, high-energy sets.',
-  'Exclusive private event specialist. Curates bespoke entertainment experiences for discerning clientele.',
-  'The quintessential lounge presence. Sophisticated, articulate, and effortlessly commanding.'
-];
-
-const TAG_POOL = [
-  'petite', 'tall', 'athletic', 'curvy', 'redhead', 'blonde', 'brunette',
-  'exotic', 'alternative', 'classy', 'high-energy', 'bilingual', 'lounge',
-  'vip', 'main-stage', 'private-events', 'conversationalist', 'showstopper',
-  'girl-next-door', 'editorial', 'fitness', 'runway', 'sultry', 'elegant'
-];
+const BIOS: Record<string, string[]> = {
+  'Petite Redhead Firecracker': [
+    'A fiery redhead with a magnetic presence. Known for intimate VIP hosting and keeping the energy turned up in private settings.',
+    'Pocket-sized dynamite with signature auburn waves. Specializes in close-quarters entertainment and premium conversational bookings.',
+  ],
+  'High-Energy Showstopper': [
+    'Captivating main-stage performer who commands every room with athletic grace and show-stopping routines.',
+    'Award-winning entertainer with unmatched crowd energy. Consistently ranks in top-tier earnings brackets on high-volume nights.',
+  ],
+  'Classy Lounge VIP': [
+    'The quintessential lounge presence. Sophisticated, articulate, and effortlessly commanding in premium bottle-service environments.',
+    'High-fashion trained with editorial experience. Brings refined elegance and impeccable client retention to VIP sections.',
+  ],
+  'Exotic Stage Performer': [
+    'A magnetic international beauty who captivates with every movement. Bilingual specialist preferred for upscale corporate entertainment.',
+    'Versatile stage artist with a loyal following. Excels in both main-stage rotations and exclusive private showcases.',
+  ],
+  'Sultry Conversationalist': [
+    'Effortlessly alluring with a gift for making every client feel like the only person in the room. A private-booth specialist.',
+    'Classically trained dancer with a sultry, contemporary edge. Known for immersive one-on-one experiences.',
+  ],
+  'Girl-Next-Door Charm': [
+    'Disarming warmth meets polished performance. A crowd favorite for her approachable energy and genuine connections.',
+    'The girl everyone wants to know. Natural charisma and infectious energy make her a retention powerhouse.',
+  ],
+};
 
 function generateProfiles(): TalentProfile[] {
   return STAGE_NAMES.map((name, i) => {
-    const tagCount = 3 + (i % 4);
-    const tags: string[] = [];
-    for (let t = 0; t < tagCount; t++) {
-      tags.push(TAG_POOL[(i + t * 7) % TAG_POOL.length]);
-    }
+    const vibeStyle = VIBE_STYLES[i % VIBE_STYLES.length];
+    const archetypeHair = ARCHETYPE_HAIR[vibeStyle];
+    const archetypeBuilds = ARCHETYPE_BUILDS[vibeStyle];
+    const archetypeTags = ARCHETYPE_TAGS[vibeStyle];
+    const archetypeBios = BIOS[vibeStyle];
 
-    const hairColor = HAIR_COLORS[i % HAIR_COLORS.length];
-    tags.push(hairColor.toLowerCase().split(' ')[0]);
+    const hairColor = archetypeHair[i % archetypeHair.length];
+    const build = archetypeBuilds[i % archetypeBuilds.length];
 
-    const build = BUILDS[i % BUILDS.length];
-    tags.push(build.toLowerCase());
+    // Build tags: archetype-specific + hair + build + venue-based
+    const tags = [
+      ...archetypeTags.slice(0, 3 + (i % 3)),
+      hairColor.toLowerCase().split(' ')[0],
+      build.toLowerCase(),
+    ];
+    // Add cross-archetype tags for search variety
+    if (i % 5 === 0) tags.push('bilingual');
+    if (i % 7 === 0) tags.push('private-events');
+    if (i % 4 === 0) tags.push('editorial');
 
     return {
       id: i + 1,
       stageName: name,
-      age: 21 + (i % 12),
+      age: 21 + (i % 10),
       height: HEIGHTS[i % HEIGHTS.length],
       build,
       hairColor,
-      vibeStyle: VIBE_STYLES[i % VIBE_STYLES.length],
-      bio: BIOS[i % BIOS.length],
+      vibeStyle,
+      bio: archetypeBios[i % archetypeBios.length],
       tags: [...new Set(tags)],
       rating: parseFloat((4.5 + (i % 6) * 0.1).toFixed(1)),
       tier: TIERS[i % TIERS.length],
@@ -173,7 +296,7 @@ function generateProfiles(): TalentProfile[] {
       availability: i % 4 === 0
         ? 'Booked for VIP until 1AM'
         : 'Available for Private Lounge Bookings',
-      images: getGalleryUrls(i)
+      images: getGalleryUrls(i, vibeStyle)
     };
   });
 }
@@ -603,7 +726,7 @@ function ProfileCard({ profile, onClick }: { profile: TalentProfile; onClick: ()
       {/* Portrait */}
       <div className="relative aspect-[3/4] w-full overflow-hidden">
         <Image
-          src={getPortraitUrl(profile.id, 500)}
+          src={getPortraitUrl(profile.id, profile.vibeStyle, 500)}
           alt={profile.stageName}
           fill
           className="object-cover group-hover:scale-105 transition-transform duration-500"
