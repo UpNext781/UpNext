@@ -114,30 +114,30 @@ export default function UpNextWorkspace() {
 
         {/* Dual Gateway Toggle */}
         <div className="flex justify-center">
-          <div className="glass-card p-1.5 inline-flex gap-1">
+          <div className="glass-card p-1 inline-flex gap-1">
             <button
               onClick={() => handlePortalChange('public')}
               disabled={isLoading}
-              className={`px-6 py-3 rounded-lg font-bold text-xs uppercase tracking-[0.15em] transition-all duration-300 flex items-center gap-2.5 ${
+              className={`px-5 py-2.5 rounded-lg font-bold text-[10px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center gap-2 ${
                 portalMode === 'public'
                   ? 'btn-gold neon-gold'
                   : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
               }`}
             >
-              <Sparkles className="w-4 h-4" />
-              Public Portal
+              <Sparkles className="w-3.5 h-3.5" />
+              VIP Experience
             </button>
             <button
               onClick={() => handlePortalChange('operator')}
               disabled={isLoading}
-              className={`px-6 py-3 rounded-lg font-bold text-xs uppercase tracking-[0.15em] transition-all duration-300 flex items-center gap-2.5 ${
+              className={`px-5 py-2.5 rounded-lg font-bold text-[10px] uppercase tracking-[0.2em] transition-all duration-300 flex items-center gap-2 ${
                 portalMode === 'operator'
                   ? 'btn-gold neon-gold'
                   : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
               }`}
             >
-              <Briefcase className="w-4 h-4" />
-              Operator App
+              <Briefcase className="w-3.5 h-3.5" />
+              Talent Suite
             </button>
           </div>
         </div>
