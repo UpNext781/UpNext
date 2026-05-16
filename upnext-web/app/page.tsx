@@ -97,9 +97,54 @@ export default function UpNextWorkspace() {
         </div>
       )}
 
+      {/* ============================================ */}
+      {/* GLOBAL NAVIGATION HEADER                     */}
+      {/* ============================================ */}
+      <nav className="sticky top-0 z-40 w-full border-b border-border/50 bg-background/80 backdrop-blur-xl">
+        <div className="max-w-7xl mx-auto flex items-center justify-between px-4 md:px-8 h-12">
+          {/* Left: Nav Links */}
+          <div className="flex items-center gap-6">
+            <a
+              href="#"
+              className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground hover:text-accent-gold transition-colors"
+            >
+              Home
+            </a>
+            <a
+              href="#"
+              className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground hover:text-accent-gold transition-colors"
+            >
+              Search & Browse
+            </a>
+            <a
+              href="#"
+              className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground hover:text-accent-gold transition-colors"
+            >
+              Club Deals
+            </a>
+          </div>
+
+          {/* Right: Auth Controls */}
+          <div className="flex items-center gap-4">
+            <a
+              href="#"
+              className="text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground hover:text-accent-gold transition-colors"
+            >
+              Log In
+            </a>
+            <a
+              href="#"
+              className="px-4 py-1.5 rounded-lg text-[11px] font-bold uppercase tracking-[0.12em] border border-accent-gold/25 text-accent-gold hover:bg-accent-gold/10 hover:border-accent-gold/40 transition-all"
+            >
+              Register
+            </a>
+          </div>
+        </div>
+      </nav>
+
       <div className="max-w-7xl mx-auto p-4 md:p-8 space-y-8">
         {/* Header with Brand Logo */}
-        <header className="pt-8 pb-6 md:pt-14 md:pb-10">
+        <header className="pt-4 pb-4 md:pt-8 md:pb-6">
           <div className="flex flex-col items-center">
             <div className="relative w-full max-w-xl md:max-w-2xl lg:max-w-3xl mx-auto">
               <Image
