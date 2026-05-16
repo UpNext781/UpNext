@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useCallback, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import {
   Search,
@@ -14,7 +14,8 @@ import {
   ArrowRight,
   Loader2,
   Calendar,
-  CheckCircle
+  CheckCircle,
+  Sparkles
 } from 'lucide-react';
 
 // ============================================
@@ -202,6 +203,100 @@ export default function TalentDiscoveryEngine({ syncWithYantra }: TalentDiscover
   const [bookingConfirmed, setBookingConfirmed] = useState(false);
   const [visibleCount, setVisibleCount] = useState(12);
 
+  // First Contact overlay state
+  const [showOverlay, setShowOverlay] = useState(false);
+  const [overlayExiting, setOverlayExiting] = useState(false);
+  const [isDocked, setIsDocked] = useState(false);
+  const [typingPlaceholder, setTypingPlaceholder] = useState('');
+  const overlayInputRef = useRef<HTMLInputElement>(null);
+  const dockedInputRef = useRef<HTMLInputElement>(null);
+  const sessionChecked = useRef(false);
+
+  // Session state: only show overlay once per session
+  useEffect(() => {
+    if (sessionChecked.current) return;
+    sessionChecked.current = true;
+    const hasSeenOverlay = sessionStorage.getItem('upnext_first_contact_seen');
+    if (!hasSeenOverlay) {
+      setShowOverlay(true);
+      sessionStorage.setItem('upnext_first_contact_seen', 'true');
+    } else {
+      setIsDocked(true);
+    }
+  }, []);
+
+  // Typewriter effect for placeholder
+  useEffect(() => {
+    if (!showOverlay || overlayExiting) return;
+
+    const phrases = [
+      "Try 'petite redhead'",
+      "Try 'high-energy alternative'",
+      "Try 'VIP lounge host'",
+      "Try 'classy brunette'",
+      "Try 'exotic stage performer'"
+    ];
+
+    let phraseIndex = 0;
+    let charIndex = 0;
+    let isDeleting = false;
+    let timeoutId: ReturnType<typeof setTimeout>;
+
+    const type = () => {
+      const currentPhrase = phrases[phraseIndex];
+
+      if (!isDeleting) {
+        setTypingPlaceholder(currentPhrase.slice(0, charIndex + 1));
+        charIndex++;
+
+        if (charIndex === currentPhrase.length) {
+          isDeleting = true;
+          timeoutId = setTimeout(type, 2000);
+          return;
+        }
+        timeoutId = setTimeout(type, 60);
+      } else {
+        setTypingPlaceholder(currentPhrase.slice(0, charIndex - 1));
+        charIndex--;
+
+        if (charIndex === 0) {
+          isDeleting = false;
+          phraseIndex = (phraseIndex + 1) % phrases.length;
+          timeoutId = setTimeout(type, 400);
+          return;
+        }
+        timeoutId = setTimeout(type, 30);
+      }
+    };
+
+    const startDelay = setTimeout(() => type(), 800);
+
+    return () => {
+      clearTimeout(startDelay);
+      clearTimeout(timeoutId);
+    };
+  }, [showOverlay, overlayExiting]);
+
+  // Dock the overlay
+  const triggerDocking = useCallback(() => {
+    setOverlayExiting(true);
+    setTimeout(() => {
+      setShowOverlay(false);
+      setOverlayExiting(false);
+      setIsDocked(true);
+      // Focus the docked input after transition
+      setTimeout(() => dockedInputRef.current?.focus(), 100);
+    }, 700);
+  }, []);
+
+  // Handle overlay search input
+  const handleOverlayInput = useCallback((value: string) => {
+    setSearchQuery(value);
+    if (value.length >= 1) {
+      triggerDocking();
+    }
+  }, [triggerDocking]);
+
   // Live client-side filtering
   const filteredProfiles = useMemo(() => {
     if (!searchQuery.trim()) return ALL_PROFILES;
@@ -222,6 +317,40 @@ export default function TalentDiscoveryEngine({ syncWithYantra }: TalentDiscover
       return terms.every(term => searchableText.includes(term));
     });
   }, [searchQuery]);
+
+  // Intelligent fallback: find closest matches when zero results
+  const fallbackProfiles = useMemo(() => {
+    if (filteredProfiles.length > 0 || !searchQuery.trim()) return [];
+
+    const terms = searchQuery.toLowerCase().split(/[\s,]+/).filter(Boolean);
+
+    // Score each profile by how many terms partially match
+    const scored = ALL_PROFILES
+      .filter(p => p.status === 'live')
+      .map(profile => {
+        const searchableText = [
+          profile.stageName,
+          profile.bio,
+          profile.hairColor,
+          profile.build,
+          profile.vibeStyle,
+          profile.venueAnchor,
+          ...profile.tags
+        ].join(' ').toLowerCase();
+
+        const matchCount = terms.filter(term =>
+          searchableText.includes(term.slice(0, 3)) ||
+          profile.tags.some(tag => tag.includes(term.slice(0, 3)))
+        ).length;
+
+        return { profile, matchCount };
+      })
+      .filter(s => s.matchCount > 0 || true)
+      .sort((a, b) => b.matchCount - a.matchCount)
+      .slice(0, 3);
+
+    return scored.map(s => s.profile);
+  }, [filteredProfiles, searchQuery]);
 
   const displayedProfiles = filteredProfiles.slice(0, visibleCount);
 
@@ -258,108 +387,201 @@ export default function TalentDiscoveryEngine({ syncWithYantra }: TalentDiscover
   }, [syncWithYantra]);
 
   return (
-    <section className="space-y-6">
-      {/* Section Header */}
-      <div className="flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-accent-crimson/15 flex items-center justify-center">
-            <Zap className="w-5 h-5 text-accent-crimson-light" />
-          </div>
-          <div>
-            <h2 className="text-lg font-display font-bold italic text-foreground">
-              Intelligent Talent Discovery
-            </h2>
-            <p className="text-xs text-muted-foreground">
-              {ALL_PROFILES.length} specialists in the Phoenix network
-            </p>
-          </div>
-        </div>
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span>{ALL_PROFILES.filter(p => p.status === 'live').length} Live Now</span>
-        </div>
-      </div>
+    <>
+      {/* ========================================== */}
+      {/* FIRST CONTACT OVERLAY                      */}
+      {/* ========================================== */}
+      {showOverlay && (
+        <div
+          className={`fixed inset-0 z-[60] flex items-center justify-center p-6 transition-all duration-700 ${
+            overlayExiting ? 'opacity-0 scale-95' : 'opacity-100 scale-100'
+          }`}
+          style={{ animation: !overlayExiting ? 'first-contact-enter 0.6s cubic-bezier(0.16, 1, 0.3, 1)' : undefined }}
+        >
+          {/* Dimmed backdrop */}
+          <div className="absolute inset-0 bg-black/90 backdrop-blur-xl"></div>
 
-      {/* Global Omni-Search Bar */}
-      <div className="glass-card-glow p-5 md:p-6 space-y-4">
-        <p className="text-xs font-bold uppercase tracking-[0.15em] text-accent-gold">
-          Find Your Ideal Specialist
-        </p>
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => handleSearchInput(e.target.value)}
-            placeholder="Try typing tags like 'petite redhead', 'high-energy alternative', 'classy lounge vip', or 'bilingual'..."
-            className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface border border-border text-foreground text-sm focus:outline-none focus:border-accent-gold/50 focus:shadow-[0_0_20px_rgba(201,162,39,0.1)] transition-all placeholder:text-muted-foreground/60"
-          />
+          <div className={`relative w-full max-w-3xl space-y-8 transition-all duration-700 ${
+            overlayExiting ? 'translate-y-8 opacity-0 scale-90' : ''
+          }`}>
+            {/* Decorative glow */}
+            <div className="absolute -inset-20 bg-gradient-to-r from-accent-gold/5 via-accent-crimson/5 to-accent-gold/5 rounded-full blur-3xl pointer-events-none"></div>
+
+            {/* Heading */}
+            <div className="relative text-center">
+              <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-accent-gold/10 border border-accent-gold/20 text-accent-gold text-xs font-bold uppercase tracking-[0.2em] mb-6">
+                <Sparkles className="w-3.5 h-3.5" />
+                Intelligent Matching Engine
+              </div>
+              <h2 className="text-3xl sm:text-4xl md:text-5xl font-display font-bold italic text-foreground leading-tight text-balance">
+                Who Clear-Cuts Your Night? <span className="text-accent-gold">//</span>{' '}
+                <span className="text-gold-gradient">Find Your Perfect Match Instantly.</span>
+              </h2>
+            </div>
+
+            {/* Oversized Search Bar */}
+            <div className="relative">
+              <div className="absolute -inset-1 rounded-2xl bg-gradient-to-r from-accent-gold/30 via-accent-crimson/20 to-accent-gold/30 blur-sm animate-pulse"></div>
+              <div className="relative rounded-2xl bg-surface/90 backdrop-blur-xl border border-accent-gold/30 p-2 shadow-[0_0_60px_rgba(201,162,39,0.15)]">
+                <div className="flex items-center gap-4 px-5 py-4">
+                  <Search className="w-6 h-6 text-accent-gold flex-shrink-0" />
+                  <input
+                    ref={overlayInputRef}
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => handleOverlayInput(e.target.value)}
+                    onClick={() => overlayInputRef.current?.focus()}
+                    placeholder={typingPlaceholder || "Search by name, look, vibe, venue..."}
+                    className="flex-1 bg-transparent text-lg md:text-xl text-foreground focus:outline-none placeholder:text-muted-foreground/40"
+                    autoFocus
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Skip Link */}
+            <div className="text-center">
+              <button
+                onClick={triggerDocking}
+                className="text-sm text-muted-foreground/60 hover:text-accent-gold transition-colors underline underline-offset-4"
+              >
+                Skip to Full Roster
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================== */}
+      {/* MAIN SECTION (docked state)                */}
+      {/* ========================================== */}
+      <section className={`space-y-6 transition-all duration-700 ${isDocked ? 'opacity-100 translate-y-0' : 'opacity-40'}`}>
+        {/* Section Header */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-accent-crimson/15 flex items-center justify-center">
+              <Zap className="w-5 h-5 text-accent-crimson-light" />
+            </div>
+            <div>
+              <h2 className="text-lg font-display font-bold italic text-foreground">
+                Intelligent Talent Discovery
+              </h2>
+              <p className="text-xs text-muted-foreground">
+                {ALL_PROFILES.length} specialists in the Phoenix network
+              </p>
+            </div>
+          </div>
+          <div className="flex items-center gap-2 text-xs text-muted-foreground">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></span>
+            <span>{ALL_PROFILES.filter(p => p.status === 'live').length} Live Now</span>
+          </div>
+        </div>
+
+        {/* Docked Omni-Search Bar */}
+        <div className={`glass-card-glow p-5 md:p-6 space-y-4 transition-all duration-700 ${
+          isDocked ? 'ring-1 ring-accent-gold/10' : ''
+        }`}>
+          <p className="text-xs font-bold uppercase tracking-[0.15em] text-accent-gold">
+            Find Your Ideal Specialist
+          </p>
+          <div className="relative">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground" />
+            <input
+              ref={dockedInputRef}
+              type="text"
+              value={searchQuery}
+              onChange={(e) => handleSearchInput(e.target.value)}
+              placeholder="Try typing tags like 'petite redhead', 'high-energy alternative', 'classy lounge vip', or 'bilingual'..."
+              className="w-full pl-12 pr-4 py-4 rounded-xl bg-surface border border-border text-foreground text-sm focus:outline-none focus:border-accent-gold/50 focus:shadow-[0_0_20px_rgba(201,162,39,0.1)] transition-all placeholder:text-muted-foreground/60"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => { setSearchQuery(''); setVisibleCount(12); }}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            )}
+          </div>
           {searchQuery && (
-            <button
-              onClick={() => { setSearchQuery(''); setVisibleCount(12); }}
-              className="absolute right-4 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <X className="w-4 h-4" />
-            </button>
+            <p className="text-xs text-muted-foreground">
+              Showing <span className="text-accent-gold font-semibold">{filteredProfiles.length}</span> results
+              for &ldquo;<span className="text-foreground">{searchQuery}</span>&rdquo;
+            </p>
           )}
         </div>
-        {searchQuery && (
-          <p className="text-xs text-muted-foreground">
-            Showing <span className="text-accent-gold font-semibold">{filteredProfiles.length}</span> results
-            for &ldquo;<span className="text-foreground">{searchQuery}</span>&rdquo;
-          </p>
+
+        {/* Profile Roster Grid */}
+        {filteredProfiles.length > 0 && (
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+            {displayedProfiles.map((profile) => (
+              <ProfileCard
+                key={profile.id}
+                profile={profile}
+                onClick={() => handleCardClick(profile)}
+              />
+            ))}
+          </div>
         )}
-      </div>
 
-      {/* Profile Roster Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-        {displayedProfiles.map((profile) => (
-          <ProfileCard
-            key={profile.id}
-            profile={profile}
-            onClick={() => handleCardClick(profile)}
+        {/* Intelligent Fallback State */}
+        {filteredProfiles.length === 0 && searchQuery.trim() && (
+          <div className="space-y-6">
+            <div className="glass-card p-8 text-center space-y-3">
+              <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-accent-gold/10 text-accent-gold text-xs font-bold uppercase tracking-wider">
+                <Sparkles className="w-3 h-3 animate-pulse" />
+                Recalibrating Parameters...
+              </div>
+              <p className="text-muted-foreground text-sm">
+                No exact matches for &ldquo;<span className="text-foreground font-medium">{searchQuery}</span>&rdquo;.
+              </p>
+              <p className="text-accent-gold text-sm font-semibold">
+                The closest matching profiles tonight are:
+              </p>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              {fallbackProfiles.map((profile) => (
+                <ProfileCard
+                  key={profile.id}
+                  profile={profile}
+                  onClick={() => handleCardClick(profile)}
+                />
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Load More */}
+        {visibleCount < filteredProfiles.length && (
+          <div className="text-center">
+            <button
+              onClick={() => setVisibleCount(prev => prev + 12)}
+              className="px-8 py-3 rounded-xl text-sm font-semibold text-accent-gold border border-accent-gold/20 hover:border-accent-gold/40 hover:bg-accent-gold/5 transition-all flex items-center gap-2 mx-auto"
+            >
+              Load More Specialists
+              <ChevronRight className="w-4 h-4" />
+            </button>
+            <p className="text-xs text-muted-foreground/50 mt-2">
+              Showing {visibleCount} of {filteredProfiles.length}
+            </p>
+          </div>
+        )}
+
+        {/* Profile Detail Drawer (Modal) */}
+        {selectedProfile && (
+          <ProfileDetailModal
+            profile={selectedProfile}
+            activeTab={activeGalleryTab}
+            setActiveTab={setActiveGalleryTab}
+            isBooking={isBooking}
+            bookingConfirmed={bookingConfirmed}
+            onBook={handleBookVIP}
+            onClose={() => { setSelectedProfile(null); setBookingConfirmed(false); }}
           />
-        ))}
-      </div>
-
-      {/* Empty State */}
-      {filteredProfiles.length === 0 && (
-        <div className="glass-card p-12 text-center">
-          <Search className="w-8 h-8 text-muted-foreground/30 mx-auto mb-4" />
-          <p className="text-muted-foreground text-sm mb-1">No specialists match your search.</p>
-          <p className="text-xs text-muted-foreground/60">Try adjusting your keywords or removing filters.</p>
-        </div>
-      )}
-
-      {/* Load More */}
-      {visibleCount < filteredProfiles.length && (
-        <div className="text-center">
-          <button
-            onClick={() => setVisibleCount(prev => prev + 12)}
-            className="px-8 py-3 rounded-xl text-sm font-semibold text-accent-gold border border-accent-gold/20 hover:border-accent-gold/40 hover:bg-accent-gold/5 transition-all flex items-center gap-2 mx-auto"
-          >
-            Load More Specialists
-            <ChevronRight className="w-4 h-4" />
-          </button>
-          <p className="text-xs text-muted-foreground/50 mt-2">
-            Showing {visibleCount} of {filteredProfiles.length}
-          </p>
-        </div>
-      )}
-
-      {/* Profile Detail Drawer (Modal) */}
-      {selectedProfile && (
-        <ProfileDetailModal
-          profile={selectedProfile}
-          activeTab={activeGalleryTab}
-          setActiveTab={setActiveGalleryTab}
-          isBooking={isBooking}
-          bookingConfirmed={bookingConfirmed}
-          onBook={handleBookVIP}
-          onClose={() => { setSelectedProfile(null); setBookingConfirmed(false); }}
-        />
-      )}
-    </section>
+        )}
+      </section>
+    </>
   );
 }
 

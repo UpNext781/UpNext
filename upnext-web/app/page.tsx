@@ -115,30 +115,26 @@ export default function UpNextWorkspace() {
             <button
               onClick={() => handlePortalChange('public')}
               disabled={isLoading}
-              className={`px-5 py-3 rounded-lg font-semibold text-sm transition-all duration-300 flex items-center gap-2 ${
+              className={`px-6 py-3 rounded-lg font-bold text-xs uppercase tracking-[0.15em] transition-all duration-300 flex items-center gap-2.5 ${
                 portalMode === 'public'
                   ? 'btn-gold neon-gold'
                   : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
               }`}
             >
               <Sparkles className="w-4 h-4" />
-              <span className="hidden sm:inline">Public Portal</span>
-              <span className="sm:hidden">Public</span>
-              <span className="hidden md:inline text-xs opacity-70">(Client Experience)</span>
+              Public Portal
             </button>
             <button
               onClick={() => handlePortalChange('operator')}
               disabled={isLoading}
-              className={`px-5 py-3 rounded-lg font-semibold text-sm transition-all duration-300 flex items-center gap-2 ${
+              className={`px-6 py-3 rounded-lg font-bold text-xs uppercase tracking-[0.15em] transition-all duration-300 flex items-center gap-2.5 ${
                 portalMode === 'operator'
                   ? 'btn-gold neon-gold'
                   : 'text-muted-foreground hover:text-foreground hover:bg-white/5'
               }`}
             >
               <Briefcase className="w-4 h-4" />
-              <span className="hidden sm:inline">Operator App</span>
-              <span className="sm:hidden">Operator</span>
-              <span className="hidden md:inline text-xs opacity-70">(Secure Briefcase)</span>
+              Operator App
             </button>
           </div>
         </div>
@@ -181,36 +177,37 @@ function PublicPortal({ syncWithYantra, isLoading }: PublicPortalProps) {
   return (
     <div className="space-y-10">
       {/* Main Stage Marquee - Cinematic Hero */}
-      <section className="relative overflow-hidden rounded-xl marquee-border">
+      <section className="relative overflow-hidden rounded-2xl marquee-border -mx-4 md:-mx-8">
         <div className="absolute inset-0">
           <Image
             src="https://images.unsplash.com/photo-1566737236500-c8ac43014a67?w=1600&h=800&fit=crop"
             alt="Luxury nightclub atmosphere"
             fill
-            className="object-cover opacity-30"
+            className="object-cover opacity-25 scale-105"
           />
         </div>
-        <div className="absolute inset-0 bg-gradient-to-br from-accent-crimson/40 via-background/80 to-accent-gold/20"></div>
-        <div className="relative glass-card-glow p-8 md:p-14 text-center">
-          <div className="max-w-3xl mx-auto">
-            <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent-gold mb-4">
+        <div className="absolute inset-0 bg-gradient-to-br from-accent-crimson/30 via-background/85 to-accent-gold/15"></div>
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-transparent to-background/40"></div>
+        <div className="relative glass-card-glow p-10 md:p-20 lg:p-28 text-center">
+          <div className="max-w-4xl mx-auto">
+            <p className="text-[10px] md:text-xs font-bold uppercase tracking-[0.4em] text-accent-gold mb-6 md:mb-8">
               Phoenix&apos;s Premier Entertainment Network
             </p>
-            <h1 className="text-4xl md:text-6xl font-display font-bold italic text-foreground mb-6 leading-tight">
+            <h1 className="text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-display font-bold italic text-foreground mb-8 md:mb-10 leading-none">
               <span className="text-gold-gradient">Elevate</span> Your Evening
             </h1>
-            <p className="text-lg md:text-xl text-muted-foreground max-w-2xl mx-auto mb-8 leading-relaxed">
+            <p className="text-base sm:text-lg md:text-xl lg:text-2xl text-muted-foreground max-w-3xl mx-auto mb-10 md:mb-14 leading-relaxed">
               Exclusive access to Arizona&apos;s most distinguished hospitality specialists. 
               Reserve premium table placements and bespoke entertainment experiences.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-              <button className="btn-gold px-8 py-4 rounded-lg text-sm flex items-center gap-2 neon-gold">
-                <Wine className="w-4 h-4" />
+              <button className="btn-gold px-10 py-5 rounded-xl text-sm md:text-base flex items-center gap-3 neon-gold">
+                <Wine className="w-5 h-5" />
                 Reserve VIP Experience
-                <ArrowRight className="w-4 h-4" />
+                <ArrowRight className="w-5 h-5" />
               </button>
-              <button className="px-8 py-4 rounded-lg text-sm font-semibold text-muted-foreground hover:text-foreground border border-border hover:border-accent-gold/30 transition-all">
-                View Tonight&apos;s Lineup
+              <button className="px-10 py-5 rounded-xl text-sm md:text-base font-semibold text-muted-foreground hover:text-foreground border border-border hover:border-accent-gold/30 transition-all">
+                Browse the Roster
               </button>
             </div>
           </div>
