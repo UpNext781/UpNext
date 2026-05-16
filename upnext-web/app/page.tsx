@@ -21,7 +21,12 @@ import {
   EyeOff,
   CheckCircle,
   Zap,
-  ArrowRight
+  ArrowRight,
+  Search,
+  Utensils,
+  CircleDot,
+  Flame,
+  Sofa
 } from 'lucide-react';
 
 type PortalMode = 'public' | 'operator';
@@ -367,7 +372,227 @@ function PublicPortal({ syncWithYantra, isLoading }: PublicPortalProps) {
           ))}
         </div>
       </section>
+
+      {/* The City Grid: Venue Directory */}
+      <VenueDirectory />
     </div>
+  );
+}
+
+// ============================================
+// VENUE DIRECTORY COMPONENT
+// "The City Grid" - Freemium venue aggregator
+// ============================================
+
+function VenueDirectory() {
+  const [searchQuery, setSearchQuery] = useState('');
+  const [activeFilters, setActiveFilters] = useState<Set<string>>(new Set());
+
+  const filters = [
+    { id: 'open-now', label: 'Open Now', icon: CircleDot },
+    { id: 'after-hours', label: 'After Hours (4AM+)', icon: Clock },
+    { id: 'zero-cover', label: 'Zero Cover', icon: DollarSign },
+    { id: 'food-available', label: 'Food Available', icon: Utensils },
+    { id: 'vip-transport', label: 'VIP Transport', icon: Car },
+  ];
+
+  const toggleFilter = (filterId: string) => {
+    const newFilters = new Set(activeFilters);
+    if (newFilters.has(filterId)) {
+      newFilters.delete(filterId);
+    } else {
+      newFilters.add(filterId);
+    }
+    setActiveFilters(newFilters);
+  };
+
+  const venues = [
+    {
+      id: 1,
+      name: "Christie's Cabaret",
+      area: 'Tempe',
+      isOpen: true,
+      hours: '4:00 PM - 4:00 AM',
+      coverCharge: '$20 Standard / Free before 9PM',
+      tonightsSpecial: '$5 Domestics until Midnight',
+      vibeTag: 'High-Energy',
+      image: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?w=600&h=400&fit=crop'
+    },
+    {
+      id: 2,
+      name: 'Le Girls',
+      area: 'West Valley',
+      isOpen: true,
+      hours: '6:00 PM - 2:00 AM',
+      coverCharge: '$10 Flat / Free with VIP',
+      tonightsSpecial: '2-for-1 Premium Cocktails',
+      vibeTag: 'Lounge',
+      image: 'https://images.unsplash.com/photo-1572116469696-31de0f17cc34?w=600&h=400&fit=crop'
+    },
+    {
+      id: 3,
+      name: 'Bourbon Street',
+      area: 'Central Phoenix',
+      isOpen: false,
+      hours: '8:00 PM - 4:00 AM',
+      coverCharge: '$15 Standard / $25 VIP Express',
+      tonightsSpecial: 'Live DJ + $8 Signature Shots',
+      vibeTag: 'High-Energy',
+      image: 'https://images.unsplash.com/photo-1470225620780-dba8ba36b745?w=600&h=400&fit=crop'
+    },
+  ];
+
+  const filteredVenues = venues.filter(venue => {
+    if (searchQuery && !venue.name.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
+    }
+    if (activeFilters.has('open-now') && !venue.isOpen) {
+      return false;
+    }
+    return true;
+  });
+
+  return (
+    <section className="space-y-6">
+      {/* Section Header */}
+      <div className="flex items-center gap-3">
+        <div className="w-10 h-10 rounded-xl bg-accent-gold/15 flex items-center justify-center">
+          <MapPin className="w-5 h-5 text-accent-gold" />
+        </div>
+        <div>
+          <h2 className="text-lg font-display font-bold italic text-foreground">The City Grid: Venue Directory</h2>
+          <p className="text-xs text-muted-foreground">Insider intel on Phoenix&apos;s premier nightlife destinations</p>
+        </div>
+      </div>
+
+      {/* Search & Filter Command */}
+      <div className="glass-card p-5 space-y-4">
+        {/* Search Bar */}
+        <div className="relative">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+          <input
+            type="text"
+            placeholder="Search venues by name..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="w-full pl-11 pr-4 py-3 rounded-lg bg-surface border border-border text-foreground text-sm focus:outline-none focus:border-accent-gold/50 transition-colors placeholder:text-muted-foreground"
+          />
+        </div>
+
+        {/* Filter Chips */}
+        <div className="flex flex-wrap gap-2">
+          {filters.map((filter) => {
+            const Icon = filter.icon;
+            const isActive = activeFilters.has(filter.id);
+            return (
+              <button
+                key={filter.id}
+                onClick={() => toggleFilter(filter.id)}
+                className={`px-3 py-2 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all ${
+                  isActive
+                    ? 'bg-accent-gold/20 text-accent-gold border border-accent-gold/40'
+                    : 'glass-card hover:border-accent-gold/30 text-muted-foreground hover:text-foreground'
+                }`}
+              >
+                <Icon className="w-3.5 h-3.5" />
+                {filter.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Venue Cards List */}
+      <div className="space-y-4">
+        {filteredVenues.map((venue) => (
+          <div 
+            key={venue.id}
+            className="glass-card overflow-hidden hover:border-accent-gold/30 transition-all group"
+          >
+            <div className="flex flex-col md:flex-row">
+              {/* Venue Image */}
+              <div className="relative w-full md:w-64 h-48 md:h-auto flex-shrink-0">
+                <Image
+                  src={venue.image}
+                  alt={venue.name}
+                  fill
+                  className="object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t md:bg-gradient-to-r from-background/80 to-transparent"></div>
+              </div>
+
+              {/* Venue Info */}
+              <div className="flex-1 p-5 md:p-6">
+                {/* Header Row */}
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4">
+                  <div>
+                    <h3 className="text-xl font-display font-bold italic text-foreground mb-1">
+                      {venue.name}
+                    </h3>
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <MapPin className="w-3.5 h-3.5" />
+                      <span>{venue.area}</span>
+                    </div>
+                  </div>
+                  
+                  {/* Live Status */}
+                  <div className={`flex items-center gap-2 px-3 py-1.5 rounded-full ${
+                    venue.isOpen 
+                      ? 'bg-emerald-500/15 text-emerald-400' 
+                      : 'bg-accent-crimson/15 text-accent-crimson-light'
+                  }`}>
+                    <span className={`w-2 h-2 rounded-full ${
+                      venue.isOpen ? 'bg-emerald-400 animate-pulse' : 'bg-accent-crimson'
+                    }`}></span>
+                    <span className="text-xs font-semibold">
+                      {venue.isOpen ? 'Open' : 'Closed'}
+                    </span>
+                    <span className="text-xs opacity-70">
+                      {venue.hours}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Intel Grid */}
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-5">
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Cover Charge</p>
+                    <p className="text-sm text-foreground font-medium">{venue.coverCharge}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Tonight&apos;s Special</p>
+                    <p className="text-sm text-accent-gold font-medium">{venue.tonightsSpecial}</p>
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold">Vibe</p>
+                    <div className="flex items-center gap-1.5">
+                      {venue.vibeTag === 'High-Energy' ? (
+                        <Flame className="w-3.5 h-3.5 text-accent-crimson-light" />
+                      ) : (
+                        <Sofa className="w-3.5 h-3.5 text-accent-gold" />
+                      )}
+                      <span className="text-sm text-foreground font-medium">{venue.vibeTag}</span>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Action Button */}
+                <button className="btn-gold px-5 py-2.5 rounded-lg text-sm flex items-center gap-2 neon-gold group-hover:shadow-lg transition-all">
+                  View Full Profile & Book VIP
+                  <ArrowRight className="w-4 h-4 group-hover:translate-x-0.5 transition-transform" />
+                </button>
+              </div>
+            </div>
+          </div>
+        ))}
+
+        {filteredVenues.length === 0 && (
+          <div className="glass-card p-10 text-center">
+            <p className="text-muted-foreground text-sm">No venues match your search criteria.</p>
+          </div>
+        )}
+      </div>
+    </section>
   );
 }
 
