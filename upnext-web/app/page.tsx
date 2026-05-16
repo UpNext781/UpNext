@@ -5,6 +5,7 @@ import Image from 'next/image';
 import TalentDiscoveryEngine from './components/TalentDiscoveryEngine';
 import LucasConcierge from './components/LucasConcierge';
 import RoxyCoPilot from './components/RoxyCoPilot';
+import DigitalGreenRoom from './components/DigitalGreenRoom';
 import { 
   Sparkles, 
   Briefcase, 
@@ -1044,6 +1045,9 @@ function OperatorApp({ syncWithYantra, isLoading }: OperatorAppProps) {
 
       {/* Roxy AI - Strategic Shift Co-Pilot */}
       <RoxyCoPilot syncWithYantra={syncWithYantra} discretionMode={discretionMode} />
+
+      {/* Digital Green Room - Tactical Comms */}
+      <DigitalGreenRoom syncWithYantra={syncWithYantra} discretionMode={discretionMode} />
 
       {/* Shift Ledger - Mobile-optimized roster */}
       <div className="glass-card p-5 md:p-6">
