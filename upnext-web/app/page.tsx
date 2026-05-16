@@ -160,18 +160,26 @@ function PublicPortal({ syncWithYantra, isLoading }: PublicPortalProps) {
   };
 
   const tonightsLineup = [
-    { id: 1, alias: 'Diamond Elite', specialty: 'VIP Hosting', rating: 5.0, status: 'Live Now' },
-    { id: 2, alias: 'Velvet Stage', specialty: 'Performance', rating: 4.9, status: 'Available 10PM' },
-    { id: 3, alias: 'Crimson Lounge', specialty: 'Bottle Service', rating: 4.8, status: 'Live Now' },
-    { id: 4, alias: 'Gold Reserve', specialty: 'Private Events', rating: 5.0, status: 'Available 11PM' },
-    { id: 5, alias: 'Platinum Floor', specialty: 'Main Stage', rating: 4.9, status: 'Live Now' },
+    { id: 1, alias: 'Diamond Elite', specialty: 'VIP Hosting', rating: 5.0, status: 'Live Now', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face' },
+    { id: 2, alias: 'Velvet Stage', specialty: 'Performance', rating: 4.9, status: 'Available 10PM', image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=400&fit=crop&crop=face' },
+    { id: 3, alias: 'Crimson Lounge', specialty: 'Bottle Service', rating: 4.8, status: 'Live Now', image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=400&fit=crop&crop=face' },
+    { id: 4, alias: 'Gold Reserve', specialty: 'Private Events', rating: 5.0, status: 'Available 11PM', image: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400&h=400&fit=crop&crop=face' },
+    { id: 5, alias: 'Platinum Floor', specialty: 'Main Stage', rating: 4.9, status: 'Live Now', image: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=400&fit=crop&crop=face' },
   ];
 
   return (
     <div className="space-y-10">
       {/* Main Stage Marquee - Cinematic Hero */}
       <section className="relative overflow-hidden rounded-xl marquee-border">
-        <div className="absolute inset-0 bg-gradient-to-br from-accent-crimson/20 via-transparent to-accent-gold/10"></div>
+        <div className="absolute inset-0">
+          <Image
+            src="https://images.unsplash.com/photo-1566737236500-c8ac43014a67?w=1600&h=800&fit=crop"
+            alt="Luxury nightclub atmosphere"
+            fill
+            className="object-cover opacity-30"
+          />
+        </div>
+        <div className="absolute inset-0 bg-gradient-to-br from-accent-crimson/40 via-background/80 to-accent-gold/20"></div>
         <div className="relative glass-card-glow p-8 md:p-14 text-center">
           <div className="max-w-3xl mx-auto">
             <p className="text-xs font-bold uppercase tracking-[0.3em] text-accent-gold mb-4">
@@ -325,10 +333,14 @@ function PublicPortal({ syncWithYantra, isLoading }: PublicPortalProps) {
               className="flex-none w-64 glass-card p-5 hover:border-accent-gold/30 transition-all group"
             >
               <div className="flex items-start justify-between mb-4">
-                <div className="w-14 h-14 rounded-xl bg-gradient-to-br from-accent-gold/30 to-accent-crimson/30 flex items-center justify-center">
-                  <span className="text-lg font-display font-bold italic text-foreground">
-                    {talent.alias.split(' ').map(w => w[0]).join('')}
-                  </span>
+                <div className="w-14 h-14 rounded-xl overflow-hidden ring-2 ring-accent-gold/30">
+                  <Image
+                    src={talent.image}
+                    alt={talent.alias}
+                    width={56}
+                    height={56}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
                 <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
                   talent.status === 'Live Now' 
