@@ -371,7 +371,7 @@ function VenueDirectory() {
       coverCharge: '$20 Standard / Free before 9PM',
       tonightsSpecial: '$5 Domestics until Midnight',
       vibeTag: 'High-Energy',
-      image: 'https://images.unsplash.com/photo-1563391065767-44a55e7919c4?w=600&h=400&fit=crop'
+      image: 'https://images.unsplash.com/photo-1516450360452-9312f5e86fc7?w=600&h=400&fit=crop'
     },
     {
       id: 2,

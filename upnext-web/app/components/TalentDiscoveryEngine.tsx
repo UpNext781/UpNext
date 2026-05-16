@@ -279,7 +279,7 @@ function generateProfiles(): TalentProfile[] {
     return {
       id: i + 1,
       stageName: name,
-      age: 21 + (i % 10),
+      age: 18 + (i % 18),
       height: HEIGHTS[i % HEIGHTS.length],
       build,
       hairColor,
