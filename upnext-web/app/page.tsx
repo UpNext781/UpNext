@@ -2,6 +2,7 @@
 
 import React, { useState, useCallback } from 'react';
 import Image from 'next/image';
+import TalentDiscoveryEngine from './components/TalentDiscoveryEngine';
 import { 
   Sparkles, 
   Briefcase, 
@@ -177,14 +178,6 @@ function PublicPortal({ syncWithYantra, isLoading }: PublicPortalProps) {
     setConciergeForm({ date: '', tableType: '', bottleService: '', transport: false, guestCount: '' });
   };
 
-  const tonightsLineup = [
-    { id: 1, alias: 'Diamond Elite', specialty: 'VIP Hosting', rating: 5.0, status: 'Live Now', image: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=400&h=400&fit=crop&crop=face' },
-    { id: 2, alias: 'Velvet Stage', specialty: 'Performance', rating: 4.9, status: 'Available 10PM', image: 'https://images.unsplash.com/photo-1524504388940-b1c1722653e1?w=400&h=400&fit=crop&crop=face' },
-    { id: 3, alias: 'Crimson Lounge', specialty: 'Bottle Service', rating: 4.8, status: 'Live Now', image: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?w=400&h=400&fit=crop&crop=face' },
-    { id: 4, alias: 'Gold Reserve', specialty: 'Private Events', rating: 5.0, status: 'Available 11PM', image: 'https://images.unsplash.com/photo-1488426862026-3ee34a7d66df?w=400&h=400&fit=crop&crop=face' },
-    { id: 5, alias: 'Platinum Floor', specialty: 'Main Stage', rating: 4.9, status: 'Live Now', image: 'https://images.unsplash.com/photo-1529626455594-4ff0802cfb7e?w=400&h=400&fit=crop&crop=face' },
-  ];
-
   return (
     <div className="space-y-10">
       {/* Main Stage Marquee - Cinematic Hero */}
@@ -330,64 +323,8 @@ function PublicPortal({ syncWithYantra, isLoading }: PublicPortalProps) {
       {/* The Vibe Matcher - Interactive Quiz */}
       <VibeMatcher syncWithYantra={syncWithYantra} />
 
-      {/* Tonight's Lineup - Premium Horizontal Slider */}
-      <section>
-        <div className="flex items-center justify-between mb-6">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-accent-crimson/15 flex items-center justify-center">
-              <Zap className="w-5 h-5 text-accent-crimson-light" />
-            </div>
-            <div>
-              <h2 className="text-lg font-display font-bold italic text-foreground">Tonight&apos;s Lineup</h2>
-              <p className="text-xs text-muted-foreground">Currently active in the Phoenix market</p>
-            </div>
-          </div>
-          <button className="text-sm text-accent-gold hover:text-accent-gold-light transition-colors flex items-center gap-1">
-            View All <ChevronRight className="w-4 h-4" />
-          </button>
-        </div>
-
-        <div className="flex gap-4 overflow-x-auto pb-4 -mx-4 px-4 scrollbar-hide">
-          {tonightsLineup.map((talent) => (
-            <div 
-              key={talent.id}
-              className="flex-none w-64 glass-card p-5 hover:border-accent-gold/30 transition-all group"
-            >
-              <div className="flex items-start justify-between mb-4">
-                <div className="w-14 h-14 rounded-xl overflow-hidden ring-2 ring-accent-gold/30">
-                  <Image
-                    src={talent.image}
-                    alt={talent.alias}
-                    width={56}
-                    height={56}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${
-                  talent.status === 'Live Now' 
-                    ? 'bg-accent-gold/20 text-accent-gold' 
-                    : 'bg-accent-crimson/20 text-accent-crimson-light'
-                }`}>
-                  {talent.status}
-                </span>
-              </div>
-              
-              <h3 className="text-base font-semibold text-foreground mb-1">{talent.alias}</h3>
-              <p className="text-xs text-muted-foreground mb-3">{talent.specialty}</p>
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-1">
-                  <Star className="w-3.5 h-3.5 text-accent-gold fill-accent-gold" />
-                  <span className="text-sm font-semibold text-foreground">{talent.rating}</span>
-                </div>
-                <button className="text-xs font-semibold text-accent-gold hover:text-accent-gold-light transition-colors group-hover:underline">
-                  Request
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
+      {/* Intelligent Talent Discovery Engine */}
+      <TalentDiscoveryEngine syncWithYantra={syncWithYantra} />
 
       {/* The City Grid: Venue Directory */}
       <VenueDirectory />
